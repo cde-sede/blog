@@ -1,0 +1,42 @@
+/* {{filename}} */
+
+{{themes}}
+
+* {
+	--delay: 0.5s;
+	transition: color var(--delay) ease, background-color var(--delay) ease, border-color var(--delay) ease;
+}
+
+:root {
+	color: var(--text-color);
+	background-color: var(--bg-color);
+	border-color: var(--border-color);
+}
+
+body {
+	font-size: 20px;
+	margin: 0px;
+
+	display: flex;
+	flex-direction: column;
+	min-height: 100vh;
+	margin: 0;
+
+	height: 100vh;
+}
+
+main {
+	display: flex;
+	flex-direction: column;
+	width: 80%;
+	margin: 0 auto;
+	align-self: center;
+    box-sizing: border-box;
+}
+
+{{navbar}}
+{{footer}}
+{{picker}}
+{{excerpts}}
+{{articles}}
+{{markdown}}

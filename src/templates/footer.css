@@ -1,0 +1,30 @@
+/* {{value}} */
+
+footer {
+	margin-top: auto;
+	padding: 1rem;
+	text-align: center;
+	background-color: var(--code-bg-color);
+	color: var(--text-color);
+	border-top: 1px solid var(--border-color);
+}
+
+.footer-icons {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	gap: 1.5rem;
+	margin-top: 0.5rem;
+}
+
+.footer-icons a {
+	font-size: 1.5rem;
+	color: var(--icon-color);
+	transition: transform 0.2s ease;
+}
+
+.footer-icons a:hover {
+	transform: scale(1.2);
+	color: var(--primary-color);
+}
+

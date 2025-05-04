@@ -1,0 +1,28 @@
+/* {{value}} */
+.theme-menu {
+	position: absolute;
+	top: 4rem;
+	right: 3rem;
+	width: 240px;
+	background-color: var(--bg-color);
+	border: 1px solid var(--border-color);
+	border-radius: 8px;
+	box-shadow: 0 4px 15px rgba(0, 0, 0, .1);
+	padding: 10px 5px;
+	z-index: 100;
+	display: none;
+	flex-wrap: wrap;
+	justify-content: center;
+}
+
+.theme-menu {
+	background-color: var(--code-bg-color);
+}
+
+.theme-option {
+	cursor: pointer;
+}
+
+.shown {
+	display: block;
+}

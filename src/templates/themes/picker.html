@@ -1,0 +1,9 @@
+<div id="picker" class="theme-menu" style="width: 200px;">
+	{{themes[
+		resolved.map(d => fromObject({
+				...getData(d),
+				filename: "themes/theme-option.html",
+				output: "null",
+		})).join("")
+	]}}
+</div>

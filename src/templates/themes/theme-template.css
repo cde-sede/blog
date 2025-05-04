@@ -1,0 +1,15 @@
+/* === {{name}} === */
+:root[data-theme="{{name}}"] {
+	--bg-color: {{bgcolor}};
+	--fg-color: {{fgcolor}};
+	--text-color: {{textcolor}};
+	--accent-color: {{accentcolor}};
+
+	--code-bg-color: {{codebgcolor}};
+	--code-fg-color: {{codefgcolor}};
+	--code-border-color: {{codebordercolor}};
+
+	--primary-color: {{primarycolor}};
+	--secondary-color: {{secondarycolor}};
+	--border-color: {{bordercolor}};
+}
