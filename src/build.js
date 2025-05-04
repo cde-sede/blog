@@ -9,6 +9,8 @@ import { load } from 'cheerio';
 
 import 'prismjs/components/prism-javascript.js';
 import 'prismjs/components/prism-python.js'; // example
+import 'prismjs/components/prism-css.js'; // example
+import 'prismjs/components/prism-c.js'; // example
 
 const langIcons = {
 	aarch64:                 "aarch64-original.svg",
