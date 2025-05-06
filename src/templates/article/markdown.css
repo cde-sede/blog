@@ -1,4 +1,5 @@
 .code-wrapper {
+	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 	border: 1px solid var(--code-border-color);
 	border-radius: 6px;
 	overflow: hidden;

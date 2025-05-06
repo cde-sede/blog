@@ -1,16 +1,22 @@
-import { readFileSync, existsSync, mkdirSync, writeFileSync } from 'fs';
-import { join, dirname, extname } from 'path';
+import * as fs from 'fs';
+import { join, dirname, extname, relative } from 'path';
 
 // import HtmlPrettify from 'html-prettify';
 import Prettify from 'js-beautify';
 import Showdown from 'showdown';
-import Prism from "prismjs";
+import Prism from 'prismjs';
 import { load } from 'cheerio';
+import { renderToString } from 'katex';
 
 import 'prismjs/components/prism-javascript.js';
-import 'prismjs/components/prism-python.js'; // example
-import 'prismjs/components/prism-css.js'; // example
-import 'prismjs/components/prism-c.js'; // example
+import 'prismjs/components/prism-json.js';
+import 'prismjs/components/prism-python.js';
+import 'prismjs/components/prism-css.js';
+import 'prismjs/components/prism-c.js';
+import 'prismjs/components/prism-cpp.js';
+import 'prismjs/components/prism-rust.js';
+import 'prismjs/components/prism-makefile.js';
+import 'prismjs/components/prism-bash.js';
 
 const langIcons = {
 	aarch64:                 "aarch64-original.svg",
@@ -486,29 +492,25 @@ const prismExtension = () => [{
 			let filename = null;
 			if (lines[0].startsWith('# '))
 				filename = lines.shift().slice(2).trim();
+			if (!filename || filename === "nofile")
+				filename = lang;
 
 			const highlighted = Prism.highlight(lines.join('\n'), Prism.languages[lang] || Prism.languages.plain, lang);
 
-			if (filename)
-				$el.parent().replaceWith(`
-				  <div class="code-wrapper">
-					<div class="code-header">
-					  <img class="code-icon" src="icons/${langIcons[lang] || langIcons.default}" alt="${lang} icon" />
-					  <span class="code-filename">${filename}</span>
-					</div>
-					<pre class="${$el.parent().attr('class')}"><code class="${className}">${highlighted}</code></pre>
-				  </div>
-				`);
-			else
-				$el.html(highlighted);
+			$el.parent().replaceWith(`
+			  <div class="code-wrapper">
+				<div class="code-header">
+				  <img class="code-icon" src="icons/${langIcons[lang] || langIcons.default}" alt="${lang} icon" />
+				  <span class="code-filename">${filename}</span>
+				</div>
+				<pre class="${$el.parent().attr('class')}"><code class="${className}">${highlighted}</code></pre>
+			  </div>
+			`);
 		});
 
-		return $.html();
+		return `<div class="markdown">${$.html()}</div>`;
 	}
 }];
-
-
-
 
 const mdConverter = new Showdown.Converter({
 	omitExtraWLInCodeBlocks: true,
@@ -533,61 +535,63 @@ const args = process.argv.slice(1);
 const eIndex = args.indexOf('-e');
 const eval_tag = eIndex !== -1 && args[eIndex + 1] ? args[eIndex + 1] : null;
 
-let depth = 0;
-let ignored = true;
-
-const schema = JSON.parse(readFileSync(join("src", "schema.json")));
+const schema = JSON.parse(fs.readFileSync(join("src", "schema.json")));
 const templates = join("src", "templates");
 const output_path = join("dist")
 
-const ensureDir = dir => !existsSync(dirname(dir)) && mkdirSync(dirname(dir), { recursive: true }) || true;
+const ensureDir = dir => !fs.existsSync(dirname(dir)) && fs.mkdirSync(dirname(dir), { recursive: true }) || true;
 const getPrettifier = l => 
 	l === 'html' ? s => Prettify.html(s, { indent_size: 4 }) :
 	l === 'js' ? s => Prettify.js(s, { indent_size: 4, space_in_empty_paren: true }) :
 	l === 'css' ? s => Prettify.css(s, { indent_size: 4 }) :
 	l === 'md' ? s => mdConverter.makeHtml(s) :
+	l === 'tex' ? s => renderToString(s, {throwOnError: false, displayMode: true, trust: true, output: "mathml"}) :
 			s => s;
 
 const iprettify = (l, s) => getPrettifier(l)(s);
 const prettify = (p, s) => iprettify(extname(p)?.slice?.(1), s);
-const save = (p, s) => p !== "null" && ensureDir(p) && writeFileSync(p, prettify(p, s), 'utf-8');
+const save = (p, s) => p !== "null" && ensureDir(p) && fs.writeFileSync(p, prettify(p, s), 'utf-8');
+const copy = (s, d) => listFiles(s).forEach(p => ensureDir(p) && !fs.lstatSync(p).isDirectory() && fs.cpSync(p, join(d, relative(s, p))));
+const listFiles = p => fs.readdirSync(p).map(e => fs.lstatSync(join(p, e)).isDirectory() ? listFiles(join(p, e)) : join(p, e)).flat();
+
+export const Text = {
+	NL: "\n",
+}
 
 const getData = (data, env, name) => {
 	if (typeof data === "object") {
+		if (data.type === 'isolatedobject')
+			return fromObject({...data, [name]: undefined});
 		if (data.type === 'object')
 			return fromObject({...env, ...data, [name]: undefined});
 		if (data.type === 'link')
 			return fromObject({...data, ...schema[getData(data.value)]});
 		if (data.type === 'file')
 			return fromFile(getData(data.value), data);
-		if (data.type === 'olink') {
+		if (data.type === 'olink')
 			return {...data, ...schema[data.value]};
+		if (data.type === 'copy') {
+			copy(join(templates, data.src), join(output_path, data.dst));
+			return listFiles(join(templates, data.src));
 		}
 		return data
 	} else return data;
 };
 
 const build = (s, data) => {
-	!ignored && console.log("\t".repeat(depth), "build", data.filename || data.value);
 	for (const key in data) {
-		depth += 1;
 		const entry = data[key];
 		const placeholder = `{{${key}(\\[[^]*\\])?}}`;
 		const resolved = getData(entry, data, key);
-		!ignored && console.log(resolved)
-		!ignored && console.log("\t".repeat(depth), "key", key);
 		s = s.replace(new RegExp(placeholder, 'gm'), (m, c) => c ? eval(c.slice(1, -1)) : data.code ? eval(data.code) : resolved);
-		depth -= 1;
 	}
-	if (data.output && data.output !== "null") {
-		!ignored && console.log("\t".repeat(depth), "save", join("dist", data.output !== "null" ? data.output || data.filename : "null"), s);
+	if (data.output && data.output !== "null")
 		save(join("dist", data.output !== "null" ? data.output || data.filename : "null"), s, 'utf-8');
-	}
 	return s;
 };
 
-const fromObject = obj => build(obj.filename ? readFileSync(join(templates, obj.filename)).toString() : obj.template || "", obj);
-const fromFile = (path, data) => build(readFileSync(join(templates, path)).toString(), data || {}).toString();
+const fromObject = obj => build(obj.filename ? fs.readFileSync(join(templates, obj.filename)).toString() : obj.template || "", obj);
+const fromFile = (path, data) => build(fs.readFileSync(join(templates, path)).toString(), data || {}).toString();
 
 if (eval_tag) {
 	console.log("Evaluating", eval_tag)

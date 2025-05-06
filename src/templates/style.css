@@ -1,6 +1,7 @@
 /* {{filename}} */
 
 {{themes}}
+{{fonts}}
 
 * {
 	--delay: 0.5s;
@@ -11,6 +12,11 @@
 	color: var(--text-color);
 	background-color: var(--bg-color);
 	border-color: var(--border-color);
+	font-family: Outfit;
+}
+
+a {
+	color: var(--primary-color);
 }
 
 body {
@@ -40,3 +46,4 @@ main {
 {{excerpts}}
 {{articles}}
 {{markdown}}
+{{katex}}
