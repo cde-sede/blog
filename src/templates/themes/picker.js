@@ -3,7 +3,7 @@ const end_percent = 65;
 
 const picker = {
 	el: document.getElementById("picker"),
-	selected: localStorage.getItem('theme'),
+	selected: localStorage.getItem('theme') || 'light',
 	shown: false,
 	show: () => {
 		picker.el.classList.add("shown");
@@ -122,7 +122,3 @@ const picker = {
 
 window.picker = picker;
 picker.run()
-
-
-
-

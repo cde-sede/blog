@@ -1,5 +1,3 @@
-
-
 utils = {
 	lerp: (min, max, x) => x * (max - min) + min,
 	easeOutQuad: x => 1 - (1 - x) * (1 - x),

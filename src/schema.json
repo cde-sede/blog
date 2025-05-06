@@ -242,7 +242,6 @@
 		"template": "{{light}}\n{{dark}}\n{{solarized-light}}\n{{solarized-dark}}\n{{atom}}\n{{dracula}}\n{{catppuccin}}\n{{nordfox}}\n{{carbonfox}}\n"
 	},
 
-
 	"theme-picker": {
 		"filename": "themes/picker.html",
 		"comment": "--bg-color --text-color --accent-color",
@@ -267,7 +266,7 @@
 			{ "type": "file", "value": "font.css", "family": "Outfit", "file": "Outfit-VariableFont_wght", "style": "normal" }
 
 		],
-		"template": "{{array[resolved.map(e => getData(e)).join(Text.NL)]}}",
+		"template": "/* fonts */{{array[resolved.map(e => getData(e)).join(Text.NL)]}}",
 		"output": "null"
 	},
 

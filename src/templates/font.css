@@ -1,3 +1,4 @@
+/* font {{family}} */
 @font-face {
 	font-family: {{family}};
 	src: url(./fonts/{{family}}/{{file}}.ttf)format('truetype');
