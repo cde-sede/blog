@@ -285,6 +285,17 @@
 			{
 				"type": "object",
 				"filename": "article/excerpt.html",
+				"title": "The basics of neural networks",
+				"name": "perceptron.html",
+				"text": {
+					"type": "link", "value": "markdown",
+					"contents": "This article explains how to create a perceptron."
+				},
+				"output": "null"
+			},
+			{
+				"type": "object",
+				"filename": "article/excerpt.html",
 				"title": "Regex-powered blog engine",
 				"name": "blog.html",
 				"text": {
@@ -311,6 +322,82 @@
 		"output": "null"
 	},
 	"articles": {
+		"perceptron": {
+			"type": "object",
+			"filename": "index.html",
+			"output": "perceptron.html",
+			"title": "The perceptron",
+
+			"navbar": { "type": "link", "value": "navbar" },
+			"footer": { "type": "link", "value": "footer" },
+			"content": {
+				"type": "isolatedobject",
+				"md": {
+					"type": "link",
+					"value": "markdown",
+					"contents": {
+						"type": "file",
+						"value": "articles/perceptron.md"
+					}
+				},
+				"line_equation": {
+					"type": "link",
+					"value": "mathblock",
+					"contents": "ap_x + b > p_y"
+				},
+				"mse": {
+					"type": "link",
+					"value": "mathblock",
+					"contents": "\\frac{1}{n}\\sum{y_i - (ax_i+b)}"
+				},
+				"partial": {
+					"type": "link",
+					"value": "mathblock",
+					"contents": "\\begin{align*} \\partial(Error)/\\partial{a} = 0 \\\\ \\partial(Error)/\\partial{b} = 0\\end{align*}"
+				},
+				"normal": {
+					"type": "link",
+					"value": "mathblock",
+					"contents": "\\begin{align*} \\partial(Error)/\\partial{a} = -2\\sum{x_i (y_i - (ax_i + b))} = 0 \\\\ \\partial(Error)/\\partial{b} = -2\\sum{y_i - (ax_i + b)} = 0\\end{align*}"
+				},
+				"intercept": {
+					"type": "link",
+					"value": "mathblock",
+					"contents": "\\begin{align*} \\sum{(y_i - ax_i - b)} = 0 \\\\ \\sum{y_i - a\\sum{x_i - nb}} = 0 \\\\ b = \\frac{\\sum{y_i - a\\sum{x_i}}}{n} \\\\ b = \\bar{y} - a\\bar{x} \\end{align*}"
+				},
+				"slope": {
+					"type": "link",
+					"value": "mathblock",
+					"contents": "\\begin{align*} \\sum(x_i(y_i - ax_i - b)) = 0 \\\\ \\sum(x_{i}y_{i}) - a\\sum{x_{i}^2} - b\\sum{x+i} = 0 \\end{align*}"
+				},
+				"substitution": {
+					"type": "link",
+					"value": "mathblock",
+					"contents": "\\begin{equation} \\begin{aligned} \\sum (x_i y_i) - a \\sum (x_i^2) - (\\bar{y} - a \\bar{x}) \\sum x_i &= 0 \\\\ \\sum (x_i y_i) - a \\sum (x_i^2) - \\bar{y} \\sum x_i + a \\bar{x} \\sum x_i &= 0 \\\\ \\sum (x_i y_i) - \\bar{y} \\sum x_i &= a \\sum (x_i^2) - a \\bar{x} \\sum x_i \\\\ \\sum (x_i y_i) - \\bar{y} \\sum x_i &= a \\left( \\sum (x_i^2) - \\bar{x} \\sum x_i \\right) \\end{aligned} \\end{equation}"
+				},
+				"simplified": {
+					"type": "link",
+					"value": "mathblock",
+					"contents": "a = \\frac{\\sum (x_i - \\bar{x})(y_i - \\bar{y})}{\\sum (x_i - \\bar{x})^2}"
+				},
+				"final": {
+					"type": "link",
+					"value": "mathblock",
+					"contents": "\\begin{align*} a = \\frac{n \\sum (x_i y_i) - \\sum x_i \\sum y_i}{n \\sum x_i^2 - (\\sum x_i)^2} \\\\ b = \\bar{y} - a \\bar{x} = \\frac{\\sum y_i - a \\sum x_i}{n} \\end{align*}"
+				},
+				"forward": {
+					"type": "link",
+					"value": "mathblock",
+					"contents": "pred = f(\\sum{x_i w_i})"
+				},
+				"MSE": {
+					"type": "link",
+					"value": "mathblock",
+					"contents": "L = \\frac{1}{n} \\sum_{i=1}^{n} (y_i - \\hat{y}_i)^2"
+				},
+				"template": "{{md}}"
+			}
+		},
 		"blog": {
 			"type": "object",
 			"filename": "index.html",

@@ -1,4 +1,6 @@
 utils = {
+	copyhref: e => (e.preventDefault(), navigator.clipboard.writeText(e.target.getAttribute('href'))),
+	copy: text => navigator.clipboard.writeText(text),
 	lerp: (min, max, x) => x * (max - min) + min,
 	easeOutQuad: x => 1 - (1 - x) * (1 - x),
 	animate: (a, b, duration, ease, render) => new Promise(resolve => {

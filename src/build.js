@@ -489,11 +489,21 @@ const prismExtension = () => [{
 			const lang = className.match(/language-(\w+)/)?.[1] || 'default';
 			const lines = $el.text().split('\n');
 
-			let filename = null;
-			if (lines[0].startsWith('# '))
-				filename = lines.shift().slice(2).trim();
-			if (!filename || filename === "nofile")
-				filename = lang;
+			const params = {
+				filename: lang,
+				class: $el.parent().attr('class') ?? '',
+				style: '',
+			};
+			while (true) {
+				const line = lines[0];
+				const match = /^#\s+(\w+):\s+(.+)$/gm.exec(line);
+				if (!match) break ;
+				params[match[1]] = match[2];
+				lines.shift();
+			}
+			if (params.nofile) params.filename = lang;
+			if (params.maxheight) params.style += `max-height: ${params.maxheight}em;`
+			if (params.spoiler === 'true') params.class ? params.class += ' spoiler' : 'spoiler';
 
 			const highlighted = Prism.highlight(lines.join('\n'), Prism.languages[lang] || Prism.languages.plain, lang);
 
@@ -501,21 +511,53 @@ const prismExtension = () => [{
 			  <div class="code-wrapper">
 				<div class="code-header">
 				  <img class="code-icon" src="icons/${langIcons[lang] || langIcons.default}" alt="${lang} icon" />
-				  <span class="code-filename">${filename}</span>
+				  <span class="code-filename">${params.filename}</span>
 				</div>
-				<pre class="${$el.parent().attr('class')}"><code class="${className}">${highlighted}</code></pre>
+				<pre class="${params.class}" style="${params.style}"><code class="${className}">${highlighted}</code></pre>
 			  </div>
 			`);
 		});
 
-		return `<div class="markdown">${$.html()}</div>`;
+		return `<div class="markdown">${$('body').html()}</div>`;
 	}
 }];
 
+const katexExtension = () => [
+	{
+		type: 'output',
+		regex: /(?<!\$)\$([^$]+)\$/gm,
+		replace: (match) => iprettify('itex', match.slice(1, -1))
+	},
+	{
+		type: 'output',
+		regex: /\$\$([^$]+)\$\$/gm,
+		replace: (match) => iprettify('tex', match.slice(2, -2))
+	},
+];
+
+
+const linksExtension = () => [
+	{
+		type: 'output',
+		filter: (html) => {
+			const $ = load(html);
+
+			$('h1, h2, h3, h4, h5, h6').each((_, el) => {
+				const $el = $(el);
+				console.log($el.attr('id'))
+				$el.prepend(`<a onclick="utils.copyhref" href='#' data-href="#${$el.attr('id')}"><span class="link"></span></a>`);
+//				$el.append(`<a href="#${$el.attr('id')}"> <img src="./icons/link.svg" width="16"></img></a>`);
+			});
+			return $.html();
+		},
+	}
+];
+
 const mdConverter = new Showdown.Converter({
 	omitExtraWLInCodeBlocks: true,
-	noHeaderId: true,
+	noHeaderId: false,
 	customizedHeaderId: true,
+	ghCompatibleHeaderId: true,
 	parseImgDimensions: true,
 	simplifiedAutoLink: true,
 	literalMidWordUnderscoresa: true,
@@ -527,7 +569,7 @@ const mdConverter = new Showdown.Converter({
 	backslashEscapesHTMLTags: true,
 	emoji: true,
 	moreStyling: true,
-	extensions: [prismExtension]
+	extensions: [prismExtension, katexExtension, linksExtension]
 });
 
 // TODO caching
@@ -546,6 +588,7 @@ const getPrettifier = l =>
 	l === 'css' ? s => Prettify.css(s, { indent_size: 4 }) :
 	l === 'md' ? s => mdConverter.makeHtml(s) :
 	l === 'tex' ? s => renderToString(s, {throwOnError: false, displayMode: true, trust: true, output: "mathml"}) :
+	l === 'itex' ? s => renderToString(s, {throwOnError: false, displayMode: false, trust: true, output: "mathml"}) :
 			s => s;
 
 const iprettify = (l, s) => getPrettifier(l)(s);
@@ -581,10 +624,12 @@ const getData = (data, env, name) => {
 const build = (s, data) => {
 	for (const key in data) {
 		const entry = data[key];
-		const placeholder = `{{${key}(\\[[^]*\\])?}}`;
+		const placeholder = `{{${key}(\\[[^]*?\\])?}}`;
 		const resolved = getData(entry, data, key);
-		s = s.replace(new RegExp(placeholder, 'gm'), (m, c) => c ? eval(c.slice(1, -1)) : data.code ? eval(data.code) : resolved);
+		s = s.replace(new RegExp(placeholder, 'gm'), (_, c) =>
+			c ? eval(c.slice(1, -1)) : data.code ? eval(data.code) : resolved);
 	}
+	s = s.replace(/{{execute\[([^]*?)\]}}/, (_, c) => eval(c));
 	if (data.output && data.output !== "null")
 		save(join("dist", data.output !== "null" ? data.output || data.filename : "null"), s, 'utf-8');
 	return s;
