@@ -525,12 +525,12 @@ const prismExtension = () => [{
 const katexExtension = () => [
 	{
 		type: 'output',
-		regex: /(?<!\$)\$([^$]+)\$/gm,
+		regex: /\s\$([^$]+)\$/gm,
 		replace: (match) => iprettify('itex', match.slice(1, -1))
 	},
 	{
 		type: 'output',
-		regex: /\$\$([^$]+)\$\$/gm,
+		regex: /\s\$\$([^$]+)\$\$/gm,
 		replace: (match) => iprettify('tex', match.slice(2, -2))
 	},
 ];
