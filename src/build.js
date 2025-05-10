@@ -525,13 +525,13 @@ const prismExtension = () => [{
 const katexExtension = () => [
 	{
 		type: 'output',
-		regex: /(?<= )\$([^$]+)\$/gm,
-		replace: (match) => iprettify('itex', match.slice(1, -1))
+		regex: /\$\$([^$]+)\$\$/gm,
+		replace: (match) => iprettify('tex', match.slice(2, -2))
 	},
 	{
 		type: 'output',
-		regex: /(?<= )\$\$([^$]+)\$\$/gm,
-		replace: (match) => iprettify('tex', match.slice(2, -2))
+		regex: /(~| )\$([^$]+)\$/gm,
+		replace: (match) => ' ' + iprettify('itex', match.slice(2, -1))
 	},
 ];
 
@@ -544,9 +544,7 @@ const linksExtension = () => [
 
 			$('h1, h2, h3, h4, h5, h6').each((_, el) => {
 				const $el = $(el);
-				console.log($el.attr('id'))
 				$el.prepend(`<a onclick="utils.copyhref" href='#' data-href="#${$el.attr('id')}"><span class="link"></span></a>`);
-//				$el.append(`<a href="#${$el.attr('id')}"> <img src="./icons/link.svg" width="16"></img></a>`);
 			});
 			return $.html();
 		},
@@ -569,7 +567,7 @@ const mdConverter = new Showdown.Converter({
 	backslashEscapesHTMLTags: true,
 	emoji: true,
 	moreStyling: true,
-	extensions: [prismExtension, katexExtension, linksExtension]
+	extensions: [prismExtension, katexExtension]
 });
 
 // TODO caching

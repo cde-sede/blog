@@ -233,3 +233,27 @@ print(f"1st Point: {DATASET[0][0]} correct: {DATASET[0][1]} guess: {perceptron.g
 print(f"2nd Point: {DATASET[1][0]} correct: {DATASET[1][1]} guess: {perceptron.guess(DATASET[1][0])}")
 print(f"3rd Point: {DATASET[2][0]} correct: {DATASET[2][1]} guess: {perceptron.guess(DATASET[2][0])}")
 ```
+
+
+And using numpy
+
+
+```python
+# spoiler: true
+# filename: perceptron_np.py
+import numpy as np
+
+class Perceptron:
+	def __init__(self, num_inputs):
+		self.weights = np.asarray([random.random() for _ in range(num_inputs)], dtype=np.float64)
+		self.activation = np.sign
+
+	def guess(self, values):
+		return self.activation(np.sum(self.weights * np.asarary(values)))
+
+	def train(self, inputs, target):
+		guess = self.guess(inputs)
+
+		error = target - guess
+		self.weights += error * inputs * LEARNING_RATE
+```

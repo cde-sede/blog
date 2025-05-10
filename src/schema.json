@@ -285,6 +285,17 @@
 			{
 				"type": "object",
 				"filename": "article/excerpt.html",
+				"title": "Writing a multilayer neural network",
+				"name": "multilayer.html",
+				"text": {
+					"type": "link", "value": "markdown",
+					"contents": "This article explains how to create a multilayer neural network."
+				},
+				"output": "null"
+			},
+			{
+				"type": "object",
+				"filename": "article/excerpt.html",
 				"title": "The basics of neural networks",
 				"name": "perceptron.html",
 				"text": {
@@ -321,7 +332,82 @@
 		"template": "{{contents[iprettify('tex', resolved)]}}",
 		"output": "null"
 	},
+	"imathblock": {
+		"template": "{{contents[iprettify('itex', resolved)]}}",
+		"output": "null"
+	},
 	"articles": {
+		"multilayer": {
+			"type": "object",
+			"filename": "index.html",
+			"output": "multilayer.html",
+			"title": "The perceptron",
+
+			"navbar": { "type": "link", "value": "navbar" },
+			"footer": { "type": "link", "value": "footer" },
+			"content": {
+				"type": "isolatedobject",
+				"md": {
+					"type": "link",
+					"value": "markdown",
+					"contents": {
+						"type": "file",
+						"value": "articles/multilayer.md"
+					}
+				},
+				"previous": {
+					"type": "link",
+					"value": "mathblock",
+					"contents": "y = f\\left(\\sum_{i=1}^{n} w_i x_i + b\\right)"
+				},
+				"inputs": {
+					"type": "link",
+					"value": "imathblock",
+					"contents": "x_i"
+				},
+				"weights": {
+					"type": "link",
+					"value": "imathblock",
+					"contents": "w_i"
+				},
+				"bias": {
+					"type": "link",
+					"value": "imathblock",
+					"contents": "b"
+				},
+				"fn": {
+					"type": "link",
+					"value": "imathblock",
+					"contents": "f"
+				},
+				"forward": {
+					"type": "link",
+					"value": "imathblock",
+					"contents": "f"
+				},
+				"biased": {
+					"type": "link",
+					"value": "mathblock",
+					"contents": "\\mathbf{z}^{[l]} = \\mathbf{W}^{[l]}_{\\text{extended}} \\cdot \\mathbf{a}^{[l-1]}_{\\text{extended}}"
+				},
+				"biased2": {
+					"type": "link",
+					"value": "mathblock",
+					"contents": "\\begin{align*} \\mathbf{W}^{[l]}_{\\text{extended}} = [\\mathbf{W}^{[l]} \\; | \\; \\mathbf{b}^{[l]}] \\\\ \\mathbf{a}^{[l-1]}_{\\text{extended}} = \\begin{bmatrix} \\mathbf{a}^{[l-1]} \\\\ 1 \\end{bmatrix} \\end{align*}"
+				},
+				"mseloss": {
+					"type": "link",
+					"value": "mathblock",
+					"contents": "L_{MSE} = \\frac{1}{m} \\sum_{i=1}^{m} (y_i - \\hat{y}_i)^2"
+				},
+				"grad": {
+					"type": "link",
+					"value": "mathblock",
+					"contents": "\\frac{\\partial L_{MSE}}{\\partial y_i} = \\frac{2}{m} (y_i - \\hat{y}_i)"
+				},
+				"template": "{{md}}"
+			}
+		},
 		"perceptron": {
 			"type": "object",
 			"filename": "index.html",
@@ -348,7 +434,7 @@
 				"mse": {
 					"type": "link",
 					"value": "mathblock",
-					"contents": "\\frac{1}{n}\\sum{y_i - (ax_i+b)}"
+					"contents": "\\frac{1}{n}\\sum{(y_i - (ax_i+b))^2}"
 				},
 				"partial": {
 					"type": "link",
