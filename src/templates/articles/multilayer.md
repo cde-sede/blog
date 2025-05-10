@@ -313,8 +313,6 @@ def load(cls, fp: BinaryIO):
     # Load layer configuration and parameters from a binary file
 ```
 
-What's notable here is the use of Python's `marshal` module to serialize and deserialize activation functions - a sophisticated approach that allows the entire network, including its custom functions, to be saved and restored.
-
 
 ### Forward Pass
 
