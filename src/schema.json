@@ -356,7 +356,7 @@
 						"value": "articles/multilayer.md"
 					}
 				},
-				"previous": 
+				"previous": {
 					"type": "link",
 					"value": "mathblock",
 					"contents": "y = f\\left(\\sum_{i=1}^{n} w_i x_i + b\\right)"
