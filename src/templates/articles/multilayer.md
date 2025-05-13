@@ -1,41 +1,79 @@
 # Multilayer neural network
 
-The goal of this article is to write a neural network class to act as an [xor gate](https://en.wikipedia.org/wiki/XOR_gate).
+*This article is a continuation of the previous one, [The Perceptron](/perceptron.html).*
 
-## The goal
 
-Let's start by hallucinating how we'd like to use our library
+Neural networks have revolutionized machine learning and artificial intelligence by providing powerful models capable of learning complex patterns from data. While modern deep learning frameworks like TensorFlow and PyTorch abstract away many implementation details, building a neural network from scratch offers invaluable insights into their inner workings.
+
+In this article, we'll implement a multilayer neural network capable of solving the [exclusive OR (XOR)](https://en.wikipedia.org/wiki/XOR_gate) problem—a classic challenge that demonstrates the need for hidden layers in neural networks. The XOR function outputs 1 only when exactly one of its inputs is 1, making it impossible to solve with a single-layer perceptron due to its non-linear nature. Making defining the decision boundary hard.
+
+<center style="width: 20%; margin: auto;">
+
+|  A  |  B  |  R  |
+|:---:|:---:|:---:|
+|  0  |  0  |  0  |
+|  0  |  1  |  1  |
+|  1  |  0  |  1  |
+|  1  |  1  |  0  |
+
+</center>
+
+This implementation will serve as both a practical learning tool and a foundation for more advanced neural network architectures. Let's dive in!
+
+## The design
+
+Now onto the code, let's start by hallucinating how we'd like to use our library.
 
 ```python
 # filename: main.py
 from network import Network, Layer, LayerSpecNBF
-from activation import sigmoid, tanh
 import numpy as np
+
+from sympy import Symbol, exp, tanh
+
+def af_sigmoid(x: Symbol):
+    return 1 / (1 + exp(-x))
+
+def af_tanh(x: Symbol):
+    return tanh(x)
 
 nn = Network(
     inputs = 2,
-    specs = [
-        LayerSpecNBF(2, True, tanh),
-        LayerSpecNBF(2, True, tanh),
-        LayerSpecNBF(1, True, sigmoid),
+    layers = [
+        LayerSpecNB(2, True),
+        LayerSpecNB(2, True),
+        LayerSpecNBF(1, False, af_sigmoid),
     ],
+    fn=af_tanh,
 )
 
 X = np.array([ [0, 0], [0, 1], [1, 0], [1, 1], ])
 y = np.array([ [0],    [1],    [1],    [0],])
 
-nn.train(X, y, epochs=1000, lr=0.1)
+nn.train(X, y, epochs=1000, lr=0.015)
 nn.export('xor.nn')
 ```
+
+What is important here is the parameterization of the layers. Giving as much freedom as a basic implementation of a neural network can while not overcomplicating the structure.
 
 ## The Network class
 
 ```python
 # filename: network.py
 import numpy as np
-from sympy import Symbol
+import numpy.typing as npt
+
+from sympy import Symbol, diff, lambdify
+
 from collections.abc import Callable, Sequence
 from typing import cast, TypedDict, NamedTuple, Any
+from pathlib import Path
+import struct
+import marshal
+import types
+
+LEARNING_RATE = 0.01  # Default learning rate
+
 
 class LayerSpecNB(NamedTuple):
 	length: int
@@ -55,11 +93,18 @@ LayerSpec = int | LayerSpecNB | LayerSpecNBF | LayerSpecD | tuple
 
 class Network:
 	def __init__(self, inputs: int, layers: list[LayerSpec] | list[Layer], fn=lambda f: f):
+        """ The Network class. A coordinator of layers.
+            
+            Parameters:
+            - inputs: The number of features of the neural network
+            - layers: A list of LayerSpec or Layers
+            - fn: The activation function to fallback to if none is specified in the a layerspec, identity function by default
+        """
 		self.layers: list[Layer] = []
 		self.inputs = inputs
 		self.fn = fn
 
-		if layers and isinstance(layers[0], Layer):
+		if layers and all(map(lambda l: isinstance(l, Layer), layers)):
 			self.layers = cast(list[Layer], layers)
 		else:
 			self.gen_layers(cast(list[LayerSpec], layers))
@@ -83,6 +128,28 @@ class Network:
 		if isinstance(spec, LayerSpecNBF):
 			return spec
 		raise TypeError(type(spec))
+
+    def train(self, X: np.ndarray, y: np.ndarray, epochs=100, lr: float=LEARNING_RATE):
+        """ Train the network using the provided training data.
+        
+            Parameters:
+            - X: Input training data (numpy array)
+            - y: Target values (numpy array)
+            - epochs: Number of training epochs
+            - lr: Learning rate
+        """
+        if not isinstance(X, np.ndarray): X = np.asarray(X)
+        if not isinstance(y, np.ndarray): y = np.asarray(y)
+
+        for epoch in range(epochs):
+            for (inputs, target) in zip(X, y):
+                self.back(inputs, target, lr=lr)
+                if epoch % (epochs // 10) == 0:
+                    print(f"Epoch {epoch} error {self.MSE(X, y)}")
+                    
+	def MSE(self, X: np.ndarray, y: np.ndarray):
+		"""Mean squared error loss function"""
+		return np.sum((np.array([self(x).reshape(-1) for x in X]) - y) ** 2) / X.shape[0]
 
 	def gen_layers(self, specs: list[LayerSpec]):
 		prev = self.processSpec(self.inputs)
@@ -336,23 +403,22 @@ This method:
 5. Returns the activated output
 
 
-
-
-In a previous [article](/perceptron.html), we explored the simple perceptron model, which provides the foundation for neural networks. Now, we'll extend this understanding to explain how forward propagation works in multi-layer networks using matrix operations, as implemented in our neural network framework.
+Previously, we explored the simple perceptron model, which provides the foundation for neural networks. Now, we'll extend this understanding to explain how forward propagation works in multi-layer networks using matrix operations, as implemented in our neural network framework.
 
 Recall that a single perceptron computes its output as follows:
 
 {{previous}}
 
 Where:
-- {{inputs}} are the inputs
-- {{weights}} are the weights
-- {{bias}} is the bias
-- {{fn}} is the activation function
+- ~$x_i$ are the inputs
+- ~$w_i$ are the weights
+- ~$b$ the bias
+- ~$f$ is the activation function
 
 ## Extending to Layers with Matrix Operations
 
-The neural network layer implementation we examined earlier extends this concept to handle multiple neurons organized in layers, using matrix operations for efficient computation.
+The neural network layer implementation we examined earlier extends this concept to handle multiple neurons organized in layers, using matrix operations for efficient computation. 
+In the perceptron implementation, the prediction is calculated by multiplying every weigth with every input value. The exact same operation can be match at the same time for every neuron in a layer using a matrix.
 
 ### Mathematical Formulation
 
@@ -422,7 +488,7 @@ Let's break down how this code implements the mathematical formulation:
 
 The matrix-based approach offers several advantages over element-wise computation:
 
-1. **Computational Efficiency**: Matrix operations are highly optimized in libraries like NumPy, leveraging hardware acceleration.
+1. **Computational Efficiency**: Matrix operations are highly optimized in libraries like NumPy, leveraging hardware acceleration and caching.
 2. **Code Clarity**: The matrix formulation makes the code more concise and readable.
 3. **Batch Processing**: Matrices allow us to process multiple samples simultaneously.
 4. **Vectorization**: Eliminates explicit loops, reducing computational overhead.
@@ -643,3 +709,74 @@ The beauty of backpropagation is that it calculates these gradients efficiently 
 1. Receives $\frac{\partial L}{\partial a^{[l]}}$ (the gradient with respect to its output)
 2. Calculates $\frac{\partial L}{\partial W^{[l]}}$ and $\frac{\partial L}{\partial b^{[l]}}$ to update its parameters
 3. Calculates $\frac{\partial L}{\partial a^{[l-1]}}$ to pass to the previous layer
+
+## The XOR
+
+Now that we have a working Neural Network implementation, let's use it to solve an XOR truth table.  
+
+```python
+# filename: xor_example.py
+from network import Network, LayerSpecNBF
+import numpy as np
+import matplotlib.pyplot as plt
+mpy import Symbol, exp, tanh
+
+def af_sigmoid(x: Symbol):
+    return 1 / (1 + exp(-x))
+
+def af_tanh(x: Symbol):
+    return tanh(x)
+
+def plot_decision_boundary(model, X, y):
+    # Define the grid size and create the mesh grid
+    h = 0.01
+    x_min, x_max = X[:, 0].min() - 0.1, X[:, 0].max() + 0.1
+    y_min, y_max = X[:, 1].min() - 0.1, X[:, 1].max() + 0.1
+    xx, yy = np.meshgrid(np.arange(x_min, x_max, h), np.arange(y_min, y_max, h))
+    
+    Z = np.zeros(xx.shape)
+    for i in range(xx.shape[0]):
+        for j in range(xx.shape[1]):
+            Z[i, j] = model(np.array([xx[i, j], yy[i, j]]))[0][0]
+    
+    plt.contourf(xx, yy, Z, levels=[0, 0.5, 1], cmap=plt.cm.RdBu, alpha=0.6)
+    plt.colorbar()
+    
+    plt.scatter(X[:, 0], X[:, 1], c=y.reshape(-1), cmap=plt.cm.RdBu, edgecolors='k')
+    plt.xlabel('X₁')
+    plt.ylabel('X₂')
+    plt.title('XOR Decision Boundary')
+    plt.xlim(x_min, x_max)
+    plt.ylim(y_min, y_max)
+    
+    return plt
+
+X = np.array([[0, 0], [0, 1], [1, 0], [1, 1]])
+y = np.array([[0],    [1],    [1],    [0]])
+
+nn = Network(
+    inputs=2,
+    specs=[
+        LayerSpecNBF(2, True, af_tanh),
+        LayerSpecNBF(2, True, af_tanh),
+        LayerSpecNBF(1, False, af_sigmoid),
+    ],
+)
+
+nn.train(X, y, epochs=2000, lr=0.1)
+
+print("\nTesting XOR Neural Network:")
+print("--------------------------")
+for inputs, target in zip(X, y):
+    output = nn(inputs)
+    print(f"Input: {inputs}, Target: {target[0]}, Predicted: {output[0][0]:.4f}")
+
+plt.subplot(1, 2, 2)
+plot_decision_boundary(nn, X, y)
+plt.tight_layout()
+plt.savefig('xor_training_results.png')
+plt.show()
+
+nn.export('xor.nn')
+print("\nModel saved as 'xor.nn'")
+```

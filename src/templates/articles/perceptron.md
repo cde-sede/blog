@@ -1,18 +1,18 @@
 # The Perceptron
 
 The Perceptron is an algorithm of supervised learning. Originally presented in the book Perceptrons: An Introduction to Computational Geometry by Marvin Minksy and Seymour Papert. It is a type of artificial neural network, whose goal is binary classification - Deciding in which category the output falls.
-In essence, a Perceptron is exactly the same a regression.
+In essence, a Perceptron is exactly the same a linear regression with gradient descent.
 
 
 ## The Problem
 
 Let's say we have to decide whether an arbitrary point **p** falls under or above a line. Assuming we know the equation of the line this is quite simple.
-We simply do
+We simply use the line equation
 
 {{line_equation}}
 
 Where **a** and **b** are the slope and y-intercept.  
-Now let's assume we do not have this information, instead we have a collection of points and whether or not they are above a line. We have two solutions here: Linear Regression or a Neural Network
+Now let's try without this information, instead we have a collection of points and whether or not they are above a line. We have two solutions here: Linear Regression or a Neural Network
 
 ### Linear Regression
 
@@ -70,7 +70,7 @@ This can be simplified to:
 With some algebraic manipulation, we get these cleaner formulas:
 {{final}}
 
-## Why This Works
+#### Why This Works
 
 This approach works because:
 
@@ -125,6 +125,46 @@ class LinearRegression:
         return predictions
 ```
 
+#### Gradient descent
+
+Here we are analytically calculating the minimum of the function. But it is also possible to approximate it by trial and error.  
+Gradient descent is the idea of minimizing the error by going towards the local minima using the derivative of the function. 
+
+I won't go over it in too much detail, as an exercise you could try to implement it yourself.  
+Here is a working version: (click on the code block to reveal the code)
+
+```python
+# filename: LinearRegressionGradientDescent.py
+# spoiler: true
+class LinearRegressionGradientDescent:
+    def __init__(self, learning_rate=0.01, iterations=1000):
+        self.learning_rate = learning_rate
+        self.iterations = iterations
+        self.weights = None
+        self.bias = None
+    
+    def _mean_squared_error(self, X, y, weights, bias):
+        return np.mean((pnp.dot(X, weights) + bias - y) ** 2)
+    
+    def fit(self, X, y):
+        n_samples, n_features = X.shape
+        
+        self.weights = np.zeros(n_features)
+        self.bias = 0
+        
+        for _ in range(self.iterations):
+            predictions = np.dot(X, self.weights) + self.bias
+            
+            dw = (1 / n_samples) * np.dot(X.T, (predictions - y))
+            db = (1 / n_samples) * np.sum(predictions - y)
+            
+            self.weights -= self.learning_rate * dw
+            self.bias -= self.learning_rate * db
+    
+    def predict(self, X):
+        return np.dot(X, self.weights) + self.bias
+```
+
 ### Neural Networks
 
 While this approach works and allows us to get a continuous answer, there are still a few issues:
@@ -136,7 +176,7 @@ To some degree, some of these issues can be mitigated by changing the approach, 
 But these solutions have to be fine tuned to the dataset and the problem.
 
 Furthermore on large datasets Regression can be very memory intensive.  
-The solution is to compute the **local minimum** of the function.
+The solution is to compute the **local minimum** of the function and include some non linear functions into the computation.
 
 At the core of training a neural network is a simple 3 steps idea
 
@@ -237,9 +277,7 @@ print(f"3rd Point: {DATASET[2][0]} correct: {DATASET[2][1]} guess: {perceptron.g
 
 And using numpy
 
-
 ```python
-# spoiler: true
 # filename: perceptron_np.py
 import numpy as np
 

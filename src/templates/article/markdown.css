@@ -29,6 +29,35 @@
 	box-sizing: content-box;
 }
 
+.code-wrapper.spoiler {
+	background: var(--code-bg-color);
+}
+
+pre.spoiler {
+}
+
+div.code-wrapper.spoiler > pre > code {
+	height: 0.8em;
+	top: 0.2em;
+}
+
+div.code-wrapper.spoiler > pre > code > * {
+    display: inline-block;
+    border-radius: 20px;
+    background: var(--primary-color); /* linear-gradient(90deg, var(--secondary-color), var(--primary-color)); */
+	color: rgba(0, 0, 0, 0);
+    padding: 0;
+    margin: 0;
+    transform-origin: center;
+    line-height: 0.9em;
+    vertical-align: baseline;
+}
+
+
+div.code-wrapper.spoiler > pre > code > * > * {
+	opacity: 0;
+}
+
 .code-header .code-icon {
 	width: 1em;
 	height: 1em;
@@ -196,7 +225,7 @@ pre {
 }
 
 .markdown th {
-	background: var(--secondary-color);
+	background: var(--accent-color);
 	color: var(--bg-color);
 }
 

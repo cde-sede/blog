@@ -478,6 +478,12 @@ const langIcons = {
 	default:                 "default.svg",
 };
 
+Prism.hooks.add('before-tokenize', function(env) {
+  if (!env.grammar.plain) {
+    env.grammar.plain = /\S+/;
+  }
+});
+
 const prismExtension = () => [{
 	type: 'output',
 	filter: (html) => {
@@ -503,12 +509,12 @@ const prismExtension = () => [{
 			}
 			if (params.nofile) params.filename = lang;
 			if (params.maxheight) params.style += `max-height: ${params.maxheight}em;`
-			if (params.spoiler === 'true') params.class ? params.class += ' spoiler' : 'spoiler';
+			// if (params.spoiler === 'true') params.class = params.class ? params.class + ' spoiler' : 'spoiler';
 
 			const highlighted = Prism.highlight(lines.join('\n'), Prism.languages[lang] || Prism.languages.plain, lang);
 
 			$el.parent().replaceWith(`
-			  <div class="code-wrapper">
+			  <div class="code-wrapper${params.spoiler ? " spoiler" : ""}">
 				<div class="code-header">
 				  <img class="code-icon" src="icons/${langIcons[lang] || langIcons.default}" alt="${lang} icon" />
 				  <span class="code-filename">${params.filename}</span>

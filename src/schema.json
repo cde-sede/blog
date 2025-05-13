@@ -275,7 +275,8 @@
 		"scripts": [
 			{ "type": "file", "value": "utils.js" },
 			{ "type": "file", "value": "themes/picker.js" },
-			{ "type": "file", "value": "article/fade-in.js" }
+			{ "type": "file", "value": "article/fade-in.js" },
+			{ "type": "file", "value": "article/spoiler.js" }
 		],
 		"output": "bundle.js"
 	},
@@ -355,35 +356,10 @@
 						"value": "articles/multilayer.md"
 					}
 				},
-				"previous": {
+				"previous": 
 					"type": "link",
 					"value": "mathblock",
 					"contents": "y = f\\left(\\sum_{i=1}^{n} w_i x_i + b\\right)"
-				},
-				"inputs": {
-					"type": "link",
-					"value": "imathblock",
-					"contents": "x_i"
-				},
-				"weights": {
-					"type": "link",
-					"value": "imathblock",
-					"contents": "w_i"
-				},
-				"bias": {
-					"type": "link",
-					"value": "imathblock",
-					"contents": "b"
-				},
-				"fn": {
-					"type": "link",
-					"value": "imathblock",
-					"contents": "f"
-				},
-				"forward": {
-					"type": "link",
-					"value": "imathblock",
-					"contents": "f"
 				},
 				"biased": {
 					"type": "link",

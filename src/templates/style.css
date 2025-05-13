@@ -3,16 +3,14 @@
 {{themes}}
 {{fonts}}
 
-* {
-	--delay: 0.5s;
-	transition: color var(--delay) ease, background-color var(--delay) ease, border-color var(--delay) ease;
-}
-
 :root {
 	color: var(--text-color);
 	background-color: var(--bg-color);
 	border-color: var(--border-color);
 	font-family: Outfit;
+
+	--delay: 0.5s;
+	transition: color var(--delay) ease, background-color var(--delay) ease, border-color var(--delay) ease;
 }
 
 .link {
@@ -23,6 +21,7 @@
 	-webkit-mask: url(icons/link.svg) no-repeat center;
 	mask: url(icons/link.svg) no-repeat center;
 }
+
 .link:hover {
 	background-color: var(-accent-color);
 }
