@@ -9,7 +9,7 @@ In essence, a Perceptron is exactly the same a linear regression with gradient d
 Let's say we have to decide whether an arbitrary point **p** falls under or above a line. Assuming we know the equation of the line this is quite simple.
 We simply use the line equation
 
-{{line_equation}}
+$$ap_x + b > p_y$$
 
 Where **a** and **b** are the slope and y-intercept.  
 Now let's try without this information, instead we have a collection of points and whether or not they are above a line. We have two solutions here: Linear Regression or a Neural Network
@@ -30,7 +30,7 @@ For each point, the error is the difference between the actual y value and our p
 
 We define the "best" line as the one that minimizes the sum of squared errors:
 
-{{mse}}
+$$\frac{1}{n}\sum{(y_i - (ax_i+b))^2}$$
 
 We square the errors because:
 - It penalizes larger errors more heavily
@@ -41,34 +41,34 @@ We square the errors because:
 
 To find the minimum of the error function, we use calculus. We take the partial derivatives of the error function with respect to m and b, and set them to zero:
 
-{{partial}}
+$$\begin{align*} \partial(Error)/\partial{a} = 0 \\ \partial(Error)/\partial{b} = 0\end{align*}$$
 
 This gives us two equations (called "normal equations"):
 
-{{normal}}
+$$\begin{align*} \partial(Error)/\partial{a} = -2\sum{x_i (y_i - (ax_i + b))} = 0 \\ \partial(Error)/\partial{b} = -2\sum{y_i - (ax_i + b)} = 0\end{align*}$$
 
 #### Solving the System of Equations
 
 Simplifying these equations:
 
 For the intercept b:
-{{intercept}}
+$$\begin{align*} \sum{(y_i - ax_i - b)} = 0 \\ \sum{y_i - a\sum{x_i - nb}} = 0 \\ b = \frac{\sum{y_i - a\sum{x_i}}}{n} \\ b = \bar{y} - a\bar{x} \end{align*}$$
 
 (where $\bar{y}$ and $\bar{x}$ are the means and n the number of points)
 
 For the slope m:
-{{slope}}
+$$\begin{align*} \sum(x_i(y_i - ax_i - b)) = 0 \\ \sum(x_{i}y_{i}) - a\sum{x_{i}^2} - b\sum{x+i} = 0 \end{align*}$$
 
 Substituting the expression for b:
-{{substitution}}
+$$\begin{equation} \begin{aligned} \sum (x_i y_i) - a \sum (x_i^2) - (\bar{y} - a \bar{x}) \sum x_i &= 0 \\ \sum (x_i y_i) - a \sum (x_i^2) - \bar{y} \sum x_i + a \bar{x} \sum x_i &= 0 \\ \sum (x_i y_i) - \bar{y} \sum x_i &= a \sum (x_i^2) - a \bar{x} \sum x_i \\ \sum (x_i y_i) - \bar{y} \sum x_i &= a \left( \sum (x_i^2) - \bar{x} \sum x_i \right) \end{aligned} \end{equation}$$
 
 This can be simplified to:
-{{simplified}}
+$$a = \frac{\sum (x_i - \bar{x})(y_i - \bar{y})}{\sum (x_i - \bar{x})^2}$$
 
 #### The Final Solution
 
 With some algebraic manipulation, we get these cleaner formulas:
-{{final}}
+$$\begin{align*} a = \frac{n \sum (x_i y_i) - \sum x_i \sum y_i}{n \sum x_i^2 - (\sum x_i)^2} \\ b = \bar{y} - a \bar{x} = \frac{\sum y_i - a \sum x_i}{n} \end{align*}$$
 
 #### Why This Works
 
@@ -192,18 +192,18 @@ Let's see how each step goes in the case of a Perceptron
 A perceptron is composed of 3 parts
 - **Inputs**: The values we use to make the prediction
 - **Weights**: How much each input changes the prediction
-- **Activation** Function: A function to introduce some non linearity (for example the **sigmoid** $f(x) = \\frac{1}{1+e^x}$)
+- **Activation** Function: A function to introduce some non linearity (for example the **sigmoid** $f(x) = \frac{1}{1+e^x}$)
 
 To make the prediction, we compute the weighted sum of inputs, then feed this value into the activation function
 
-{{forward}}
+$$pred = f(\sum{x_i w_i})$$
 
 #### 2. The error
 
 Once we have a prediction, we compare it to the expected output using a **loss function**.
 A common choice is **mean squared error (MSE)**:
 
-{{MSE}}
+$$L = \frac{1}{n} \sum_{i=1}^{n} (y_i - \hat{y}_i)^2$$
 
 Or simply the distance between the prediction and the expected output $L = y - \hat{y}$
 

@@ -7,15 +7,40 @@
 }
 
 .code-header {
+	position: relative;
 	background: var(--primary-color);
 	color: var(--code-bg-color);
 	font-family: monospace;
 	padding: 0.4em 0.8em;
-	display: flex;
-	align-items: center;
-	gap: 0.5em;
 	font-size: 0.85em;
 	border-bottom: 1px solid var(--code-border-color);
+
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 0.5em;
+}
+
+.copy-button {
+	background: var(--text-color);
+}
+
+.copy-popup {
+  position: absolute;
+  bottom: -1.5em;
+  right: 0.5em;
+  background: var(--bg-color);
+  color: var(--code-fg-color);
+  font-size: 0.75em;
+  padding: 0.25em 0.5em;
+  border-radius: 4px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+}
+
+.copy-popup.show {
+  opacity: 1;
 }
 
 .code-wrapper pre {

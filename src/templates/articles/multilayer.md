@@ -407,13 +407,13 @@ Previously, we explored the simple perceptron model, which provides the foundati
 
 Recall that a single perceptron computes its output as follows:
 
-{{previous}}
+$$y = f\left(\sum_{i=1}^{n} w_i x_i + b\right)$$
 
 Where:
-- ~$x_i$ are the inputs
-- ~$w_i$ are the weights
-- ~$b$ the bias
-- ~$f$ is the activation function
+- $x_i$ are the inputs
+- $w_i$ are the weights
+- $b$ the bias
+- $f$ is the activation function
 
 ## Extending to Layers with Matrix Operations
 
@@ -431,19 +431,19 @@ Where:
  $$\mathbf{z}^{[l]} = \mathbf{W}^{[l]} \cdot \mathbf{a}^{[l-1]} + \mathbf{b}^{[l]}$$
 
 In these equations:
-- ~$\mathbf{a}^{[l]}$ is the activation (output) vector of layer $l$
-- ~$\mathbf{z}^{[l]}$ is the pre-activation vector of layer $l$
-- ~$\mathbf{W}^{[l]}$ is the weight matrix of layer $l$
-- ~$\mathbf{b}^{[l]}$ is the bias vector of layer $l$
-- ~$f^{[l]}$ is the activation function of layer $l$
-- ~$\mathbf{a}^{[l-1]}$ is the activation (output) vector of the previous layer
+- $\mathbf{a}^{[l]}$ is the activation (output) vector of layer $l$
+- $\mathbf{z}^{[l]}$ is the pre-activation vector of layer $l$
+- $\mathbf{W}^{[l]}$ is the weight matrix of layer $l$
+- $\mathbf{b}^{[l]}$ is the bias vector of layer $l$
+- $f^{[l]}$ is the activation function of layer $l$
+- $\mathbf{a}^{[l-1]}$ is the activation (output) vector of the previous layer
 
 The dimensions of these elements are:
-- ~$\mathbf{W}^{[l]}$ is an $m \times n$ matrix
-- ~$\mathbf{a}^{[l-1]}$ is an $n \times 1$ vector
-- ~$\mathbf{b}^{[l]}$ is an $m \times 1$ vector
-- ~$\mathbf{z}^{[l]}$ is an $m \times 1$ vector
-- ~$\mathbf{a}^{[l]}$ is an $m \times 1$ vector
+- $\mathbf{W}^{[l]}$ is an $m \times n$ matrix
+- $\mathbf{a}^{[l-1]}$ is an $n \times 1$ vector
+- $\mathbf{b}^{[l]}$ is an $m \times 1$ vector
+- $\mathbf{z}^{[l]}$ is an $m \times 1$ vector
+- $\mathbf{a}^{[l]}$ is an $m \times 1$ vector
 
 ### Implementation in Code
 
@@ -462,27 +462,27 @@ def __call__(self, inputs: np.ndarray):
 Let's break down how this code implements the mathematical formulation:
 
 1. **Bias Handling**: Instead of adding a separate bias term, the code appends a 1 to the input vector and incorporates the bias into the weight matrix:
-   ```python
-   if self.spec.bias:
-       inputs = np.vstack([inputs, 1])
-   ```
-   This transforms our equation to:
-   {{biased}}
+```python
+if self.spec.bias:
+   inputs = np.vstack([inputs, 1])
+```
+This transforms our equation to:
+$$\mathbf{z}^{[l]} = \mathbf{W}^{[l]}_{\text{extended}} \cdot \mathbf{a}^{[l-1]}_{\text{extended}}$$
 
-   Where:
-   {{biased2}}
+Where:
+$$\begin{align*} \mathbf{W}^{[l]}_{\text{extended}} = [\mathbf{W}^{[l]} \; | \; \mathbf{b}^{[l]}] \\ \mathbf{a}^{[l-1]}_{\text{extended}} = \begin{bmatrix} \mathbf{a}^{[l-1]} \\ 1 \end{bmatrix} \end{align*}$$
 
 2. **Matrix Multiplication**: The actual computation uses matrix multiplication (the `@` operator in Python):
-   ```python
-   self.z = self.weights @ inputs + self.biases
-   ```
-   This calculates $\mathbf{z}^{[l]} = \mathbf{W}^{[l]} \cdot \mathbf{a}^{[l-1]} + \mathbf{b}^{[l]}$, the pre-activation values.
+```python
+self.z = self.weights @ inputs + self.biases
+```
+This calculates $\mathbf{z}^{[l]} = \mathbf{W}^{[l]} \cdot \mathbf{a}^{[l-1]} + \mathbf{b}^{[l]}$, the pre-activation values.
 
 3. **Activation Function**: The activation function is applied element-wise to the pre-activation values:
-   ```python
-   self.a = self.vf(self.z)
-   ```
-   This computes $\mathbf{a}^{[l]} = f^{[l]}(\mathbf{z}^{[l]})$, the final output of the layer.
+```python
+self.a = self.vf(self.z)
+```
+This computes $\mathbf{a}^{[l]} = f^{[l]}(\mathbf{z}^{[l]})$, the final output of the layer.
 
 ### Why Matrix Operations?
 
@@ -501,9 +501,9 @@ $$\mathbf{Z}^{[l]} = \mathbf{W}^{[l]} \cdot \mathbf{A}^{[l-1]} + \mathbf{b}^{[l]
 $$\mathbf{A}^{[l]} = f^{[l]}(\mathbf{Z}^{[l]})$$
 
 Where:
-- ~$\mathbf{A}^{[l-1]}$ is an $n \times k$ matrix containing activations for all samples
-- ~$\mathbf{Z}^{[l]}$ is an $m \times k$ matrix of pre-activation values
-- ~$\mathbf{A}^{[l]}$ is an $m \times k$ matrix of activation values
+- $\mathbf{A}^{[l-1]}$ is an $n \times k$ matrix containing activations for all samples
+- $\mathbf{Z}^{[l]}$ is an $m \times k$ matrix of pre-activation values
+- $\mathbf{A}^{[l]}$ is an $m \times k$ matrix of activation values
 
 
 Now, the only thing left to do is the training part of the network: backpropagation.
@@ -518,24 +518,24 @@ For a network with a loss function $L$, we want to compute how changes in weight
 
 For a layer $l$, we need to compute:
 
-1. ~$\frac{\partial L}{\partial \mathbf{W}^{[l]}}$ - How changes in weights affect the loss
-2. ~$\frac{\partial L}{\partial \mathbf{b}^{[l]}}$ - How changes in biases affect the loss
-3. ~$\frac{\partial L}{\partial \mathbf{a}^{[l-1]}}$ - How changes in the previous layer's output affect the loss
+1. $\frac{\partial L}{\partial \mathbf{W}^{[l]}}$ - How changes in weights affect the loss
+2. $\frac{\partial L}{\partial \mathbf{b}^{[l]}}$ - How changes in biases affect the loss
+3. $\frac{\partial L}{\partial \mathbf{a}^{[l-1]}}$ - How changes in the previous layer's output affect the loss
 
 ### Key Backpropagation Equations
 
 Starting with a gradient $\frac{\partial L}{\partial \mathbf{a}^{[l]}}$ received from the next layer (or directly from the loss function for the output layer), we compute:
 
-1. ~$\frac{\partial L}{\partial \mathbf{z}^{[l]}} = \frac{\partial L}{\partial \mathbf{a}^{[l]}} \odot f'^{[l]}(\mathbf{z}^{[l]})$ for elementwise activation functions  
+1. $\frac{\partial L}{\partial \mathbf{z}^{[l]}} = \frac{\partial L}{\partial \mathbf{a}^{[l]}} \odot f'^{[l]}(\mathbf{z}^{[l]})$ for elementwise activation functions  
    Where $\odot$ represents element-wise multiplication
 
-2. ~$\frac{\partial L}{\partial \mathbf{W}^{[l]}} = \frac{\partial L}{\partial \mathbf{z}^{[l]}} \cdot (\mathbf{a}^{[l-1]})^T$  
+2. $\frac{\partial L}{\partial \mathbf{W}^{[l]}} = \frac{\partial L}{\partial \mathbf{z}^{[l]}} \cdot (\mathbf{a}^{[l-1]})^T$  
    This gives us the gradient for the weights
 
-3. ~$\frac{\partial L}{\partial \mathbf{b}^{[l]}} = \frac{\partial L}{\partial \mathbf{z}^{[l]}}$  
+3. $\frac{\partial L}{\partial \mathbf{b}^{[l]}} = \frac{\partial L}{\partial \mathbf{z}^{[l]}}$  
    The gradient for the biases
 
-4. ~$\frac{\partial L}{\partial \mathbf{a}^{[l-1]}} = (\mathbf{W}^{[l]})^T \cdot \frac{\partial L}{\partial \mathbf{z}^{[l]}}$  
+4. $\frac{\partial L}{\partial \mathbf{a}^{[l-1]}} = (\mathbf{W}^{[l]})^T \cdot \frac{\partial L}{\partial \mathbf{z}^{[l]}}$  
    This gradient is passed to the previous layer
 
 ### Parameter Update Rule
@@ -610,8 +610,8 @@ self.biases = self.biases - lr * db
 ```
 
 This implements the gradient descent update rule:
-- ~$\mathbf{W}^{[l]} = \mathbf{W}^{[l]} - \alpha \cdot \frac{\partial L}{\partial \mathbf{W}^{[l]}}$
-- ~$\mathbf{b}^{[l]} = \mathbf{b}^{[l]} - \alpha \cdot \frac{\partial L}{\partial \mathbf{b}^{[l]}}$
+- $\mathbf{W}^{[l]} = \mathbf{W}^{[l]} - \alpha \cdot \frac{\partial L}{\partial \mathbf{W}^{[l]}}$
+- $\mathbf{b}^{[l]} = \mathbf{b}^{[l]} - \alpha \cdot \frac{\partial L}{\partial \mathbf{b}^{[l]}}$
 
 Where `lr` corresponds to the learning rate $\alpha$.
 
@@ -671,16 +671,16 @@ grad = self.layers[-1].a - target.reshape(-1, 1)
 
 This line computes the initial gradient based on the Mean Squared Error (MSE) loss function. Mathematically, the MSE loss is:
 
-{{mseloss}}
+$$L_{MSE} = \frac{1}{m} \sum_{i=1}^{m} (y_i - \hat{y}_i)^2$$
 
 Where:
-- ~$y_i$ is the predicted output (here, `self.layers[-1].a`)
-- ~$\hat{y}_i$ is the target output (here, `target`)
-- ~$m$ is the number of output units
+- $y_i$ is the predicted output (here, `self.layers[-1].a`)
+- $\hat{y}_i$ is the target output (here, `target`)
+- $m$ is the number of output units
 
 The gradient of this loss with respect to the output activations is:
 
-{{grad}}
+$$\frac{\partial L_{MSE}}{\partial y_i} = \frac{2}{m} (y_i - \hat{y}_i)$$
 
 The code computes a simplified version of this gradient as $(y_i - \hat{y}_i)$, omitting the constants which would only scale the learning rate. The `.reshape(-1, 1)` ensures proper dimensionality for column vector operations.
 
