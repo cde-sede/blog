@@ -23,7 +23,7 @@ This tells us that to project a 3D point $(x, y, z)$ onto a 2D plane, we scale i
 
 ### Step 2: Homogeneous Coordinates and Matrix Form
 
-In computer graphics, we use 4D **homogeneous coordinates** to make projections compatible with matrix multiplication. This means we represent the point $(x, y, z)$ as a 4D vector:
+In computer graphics, we use 4D **homogeneous coordinates** to make projections compatible with affine transformations (transformations that may change the origin of the space). This means we represent the point $(x, y, z)$ as a 4D vector:
 
 $$
 \mathbf{v} = \begin{bmatrix} x \\ y \\ z \\ 1 \end{bmatrix}
