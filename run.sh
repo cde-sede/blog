@@ -1,3 +1,3 @@
 clear
-npm i js-beautify showdown prismjs cheerio katex
+npm install
 node src/build.js
