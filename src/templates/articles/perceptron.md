@@ -128,7 +128,7 @@ class LinearRegression:
 #### Gradient descent
 
 Here we are analytically calculating the minimum of the function. But it is also possible to approximate it by trial and error.  
-Gradient descent is the idea of minimizing the error by going towards the local minima using the derivative of the function. 
+Gradient descent is the idea of minimizing the error by going towards the local minimum using the derivative of the function. 
 
 I won't go over it in too much detail, as an exercise you could try to implement it yourself.  
 Here is a working version: (click on the code block to reveal the code)
