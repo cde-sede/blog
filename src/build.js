@@ -97,7 +97,7 @@ function wrapWithMarkdownDiv(md) {
 const mdConverter = new MarkdownIt({ html: true, highlight: () => '' })
 	.use(prismMarkdownItPlugin)
 	.use(wrapWithMarkdownDiv)
-	.use(markdownItKatex, { output: 'mathml', thorwOnError: false, trust: true, strict: false});
+	.use(markdownItKatex, { throwOnError: false, trust: true, strict: false});
 
 
 // TODO caching
@@ -115,8 +115,8 @@ const getPrettifier = l =>
 	l === 'js' ? s => Prettify.js(s, { indent_size: 4, space_in_empty_paren: true }) :
 	l === 'css' ? s => Prettify.css(s, { indent_size: 4 }) :
 	l === 'md' ? s => mdConverter.render(s) :
-	l === 'tex' ? s => renderToString(s, {throwOnError: false, displayMode: true, trust: true, output: "mathml", strict: false}) :
-	l === 'itex' ? s => renderToString(s, {throwOnError: false, displayMode: false, trust: true, output: "mathml", strict: false}) :
+	l === 'tex' ? s => renderToString(s, { displayMode: true, throwOnError: false, trust: true, strict: false}) :
+	l === 'itex' ? s => renderToString(s, { displayMode: false, throwOnError: false, trust: true, strict: false}) :
 			s => s;
 
 const iprettify = (l, s) => getPrettifier(l)(s);
