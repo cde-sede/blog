@@ -215,11 +215,9 @@ To reduce the error, we adjust the weights.
 We compute the **gradient** of the loss function with respect to each weight — how much a small change in a weight would change the loss.
 This is done via **backpropagation**, and we use **gradient descent** to update the weights:
 
-$$
-w \\leftarrow w - \\eta \\cdot \\frac{\\partial L}{\\partial w}
-$$
+$$ w \leftarrow w - \eta \cdot \frac{\partial L}{\partial w} $$
 
-Where $\\eta$ is the learning rate — how big each step is.
+Where $\eta$ is the learning rate — how big each step is.
 
 Repeat this loop (predict → compute error → update weights) until the model converges or reaches a stopping criterion.
 
