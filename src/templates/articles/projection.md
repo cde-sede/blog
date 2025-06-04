@@ -1,306 +1,152 @@
-# **Deriving a Basic 3D Projection Matrix from First Principles**
+# **Deriving 3D Projection Matrices from First Principles**
 
-Before diving into modern graphics APIs and their complex matrix stacks, it's useful-and enlightening-to derive the most basic form of a **3D perspective projection matrix** yourself. At its core, this matrix transforms a 3D point in space so it appears correctly on a 2D screen, with farther objects looking smaller.
+Understanding how 3D graphics work behind the scenes can seem intimidating, but at its core, 3D projection is just math that mimics how our eyes see the world. This article will guide you through building a complete perspective projection matrix step by step, starting from the most basic concepts and working up to a full-featured implementation.
 
-This article will guide you through the step-by-step logic of building such a matrix from scratch, without shortcuts or hand-waving.
+## **Part 1: The Basic Concept**
 
----
+### What Is Perspective Projection?
 
-## Depth perspective
+In the real world, objects appear smaller the farther away they are. A simple way to simulate this mathematically is:
 
+$$x_{\text{screen}} = \frac{x}{z}, \quad y_{\text{screen}} = \frac{y}{z}$$
 
-### Step 1: What Is Perspective Projection?
+This formula takes a 3D point $(x, y, z)$ and projects it onto a 2D screen by dividing the $x$ and $y$ coordinates by the depth $z$. The farther away something is (larger $z$), the smaller it appears on screen.
 
-In a perspective view, the farther an object is from the camera, the smaller it appears. This effect is fundamental to human vision and is mimicked in 3D graphics through **perspective projection**.
+### Moving to Matrix Form
 
-A simple mathematical way to simulate this is:
+In computer graphics, we use **homogeneous coordinates** - representing 3D points as 4D vectors - to make both affine and linear transformations work seamlessly with matrix multiplication. A 3D point $(x, y, z)$ becomes:
 
-$$x_{\text{proj}} = \frac{x}{z}, \quad y_{\text{proj}} = \frac{y}{z}$$
+$\mathbf{v} = \begin{bmatrix} x \\ y \\ z \\ 1 \end{bmatrix}$
 
-This tells us that to project a 3D point $(x, y, z)$ onto a 2D plane, we scale its $x$ and $y$ coordinates based on how far it is (its $z$).
+We want to find a $4 \times 4$ matrix $P$ that transforms this vector so that after a **perspective divide** (dividing by the fourth component), we get our desired projection.
 
----
+### The Simplest Projection Matrix
 
-### Step 2: Homogeneous Coordinates and Matrix Form
+To achieve $x/z$ and $y/z$, we need the fourth component $w$ to equal $z$. Here's the simplest matrix that does this:
 
-In computer graphics, we use 4D **homogeneous coordinates** to make projections compatible with affine transformations (transformations that may change the origin of the space). This means we represent the point $(x, y, z)$ as a 4D vector:
-
-$$
-\mathbf{v} = \begin{bmatrix} x \\ y \\ z \\ 1 \end{bmatrix}
-$$
-
-We want to find a $4 \times 4$ matrix $P$ such that:
-
-$$
-P \cdot \mathbf{v} = \begin{bmatrix} x' \\ y' \\ z' \\ w \end{bmatrix}
-$$
-
-and after dividing by $w$ (called **perspective divide**), we get:
-
-$$
-\left( \frac{x'}{w}, \frac{y'}{w}, \frac{z'}{w} \right) = \left( \frac{x}{z}, \frac{y}{z}, 1 \right)
-$$
-
-So we want:
-
-* $x' = x$
-* $y' = y$
-* $z' = z$
-* $w = z$
-
-Let's construct a matrix that accomplishes this.
-
----
-
-### Step 3: Build the Projection Matrix
-
-We start with the identity matrix and modify the last row to produce $w = z$:
-
-$$
-P = \begin{bmatrix}
+$P = \begin{bmatrix}
 1 & 0 & 0 & 0 \\
 0 & 1 & 0 & 0 \\
 0 & 0 & 1 & 0 \\
-0 & 0 & 1 & 0 \\
-\end{bmatrix}
-$$
+0 & 0 & 1 & 0
+\end{bmatrix}$
 
-Apply $P$ to $\mathbf{v} = \begin{bmatrix} x \\ y \\ z \\ 1 \end{bmatrix}$:
+When we multiply this with our point vector:
 
-$$ P \cdot \mathbf{v} = \begin{bmatrix} x \\ y \\ z \\ z \end{bmatrix} \Rightarrow \text{after divide by } w = z: \left( \frac{x}{z}, \frac{y}{z}, 1 \right) $$
+$P \cdot \begin{bmatrix} x \\ y \\ z \\ 1 \end{bmatrix} = \begin{bmatrix} x \\ y \\ z \\ z \end{bmatrix}$
 
-This achieves the perspective projection: shrinking $x$ and $y$ as $z$ increases.
+After dividing by $w = z$, we get $\left(\frac{x}{z}, \frac{y}{z}, 1\right)$ - exactly the perspective projection we wanted!
 
----
-
-### Step 4: Interpretation
-
-This basic matrix ignores real-world factors like:
-
-* Field of view (FOV)
-* Aspect ratio
-* Near/far clipping planes
-
-But it illustrates the key idea: **make $w = z$, and use perspective divide** to simulate depth.
-
-Modern projection matrices generalize this idea to handle screen boundaries, clipping planes, and normalization into device coordinates. But the core idea remains the same.
+This basic matrix demonstrates the core principle, but it's missing several crucial features needed for real 3D graphics.
 
 ---
 
-### Conclusion
+## **Part 2: Adding Essential Features**
 
-The basic 3D projection matrix is not magic. It's a straightforward application of how vision works: the farther something is, the smaller it looks. By using homogeneous coordinates and choosing $w = z$, we make this behavior matrix-friendly.
+### What's Missing?
 
-Understanding this simple form gives you a solid intuition for how real projection matrices work-and makes 3D math a lot less mysterious.
+Our basic matrix works, but real 3D applications need:
 
-## **Adding Clipping and Normalization**
+1. **Field of view control** - determining how "wide" the view is
+2. **Aspect ratio handling** - ensuring circles stay circular on rectangular screens  
+3. **Depth clipping** - rejecting objects too close or too far from the camera
+4. **Depth normalization** - mapping depth values to a standard range for depth testing
 
-In the first part, we built a minimal 3D perspective projection matrix that maps a 3D point $(x, y, z)$ to 2D screen space using just $(x/z, y/z)$. While this gives a basic perspective effect, it lacks essential features:
+### Defining the View Frustum
 
-* Depth normalization to the range $[-1, 1]$
-* Clipping (rejecting geometry behind the camera or too far away)
-* Aspect ratio and field-of-view (FOV) control
+A **view frustum** is the 3D region that's visible to the camera - shaped like a truncated rectangular pyramid. We define it with:
 
-In this part, we derive a **generalized perspective projection matrix** that includes all these features.
+- **Near plane** at distance $z_n$ (closest visible distance)
+- **Far plane** at distance $z_f$ (farthest visible distance)  
+- **Vertical field of view** angle $\theta$
+- **Aspect ratio** $a = \frac{\text{width}}{\text{height}}$
 
----
+From these parameters, we can calculate the frustum dimensions at the near plane:
 
-### Step 1: Goals of a Full Projection Matrix
+$$\text{top} = t = z_n \cdot \tan\left(\frac{\theta}{2}\right)$$
+$$\text{right} = r = t \cdot a$$
 
-We want a matrix that:
-
-1. **Applies perspective**: $x/z$, $y/z$
-2. **Maps visible depth range** $[z_{\text{near}}, z_{\text{far}}]$ into normalized device coordinates (NDC) in $[-1, 1]$
-3. **Preserves aspect ratio**
-4. **Clips geometry** outside the view frustum
-
----
-
-### Step 2: Define the Viewing Frustum
-
-We define a frustum (truncated pyramid) where:
-
-* Near plane is at $z = z_{\text{near}} > 0$
-* Far plane is at $z = z_{\text{far}} > z_{\text{near}}$
-* The camera looks down the negative $z$-axis (OpenGL convention)
-
-Assume a vertical field of view angle $\theta$, and screen aspect ratio $a = \frac{\text{width}}{\text{height}}$.
-
-From the vertical FOV, the top of the near plane is at:
-
-$$
-t = z_{\text{near}} \cdot \tan\left(\frac{\theta}{2}\right)
-$$
-
-The bottom is $-t$, and the left/right edges are:
-
-$$
-r = t \cdot a, \quad l = -r
-$$
+The visible region at the near plane spans $x \in [-r, r]$ and $y \in [-t, t]$.
 
 ---
 
-### Step 3: Construct the Perspective Matrix
+## **Part 3: Building the Complete Matrix**
 
-We aim to map the frustum into a **canonical cube** from $[-1, 1]$ in all three axes. Here's the standard OpenGL-style perspective matrix:
+### Scaling for Field of View and Aspect Ratio
 
-$$
-P =
-\begin{bmatrix}
-\frac{z_{\text{near}}}{r} & 0 & 0 & 0 \\
-0 & \frac{z_{\text{near}}}{t} & 0 & 0 \\
-0 & 0 & -\frac{z_{\text{far}} + z_{\text{near}}}{z_{\text{far}} - z_{\text{near}}} & -\frac{2 z_{\text{far}} z_{\text{near}}}{z_{\text{far}} - z_{\text{near}}} \\
-0 & 0 & -1 & 0
-\end{bmatrix}
-$$
+To map the visible region $[-r, r] \times [-t, t]$ to the normalized range $[-1, 1] \times [-1, 1]$, we need to scale by $\frac{1}{r}$ and $\frac{1}{t}$:
 
-Let's explain each row:
+$$\frac{1}{r} = \frac{1}{t \cdot a} = \frac{1}{a \cdot \tan(\theta/2)}$$
+$$\frac{1}{t} = \frac{1}{\tan(\theta/2)}$$
 
-#### Row 1 & 2: X and Y Scaling
+### Handling Depth
 
-$$
-\frac{z_{\text{near}}}{r} \quad \text{and} \quad \frac{z_{\text{near}}}{t}
-$$
+For depth, we need two things:
+1. **Perspective divide**: Make $w = -z$ (negative because we're looking down the negative z-axis)
+2. **Depth mapping**: Map the visible depth range $[z_n, z_f]$ to $[-1, 1]$ for depth testing
 
-These scale $x$ and $y$ based on FOV and aspect ratio, so that the near rectangle maps to $[-1, 1] \times [-1, 1]$ after division by $w = -z$.
+The depth mapping takes the form $z' = Az + B$, and after perspective divide becomes:
 
-#### Row 3: Z Mapping
+$$z_{\text{ndc}} = \frac{z'}{w} = \frac{Az + B}{-z}$$
 
-We want to map $[z_{\text{near}}, z_{\text{far}}] \rightarrow [-1, 1]$. The form:
+We want:
+- When $z = z_n$: $z_{\text{ndc}} = -1$ 
+- When $z = z_f$: $z_{\text{ndc}} = 1$
 
-$$
-z' = A z + B
-$$
+Solving these conditions:
 
-becomes:
+$$\frac{Az_n + B}{-z_n} = -1 \Rightarrow Az_n + B = z_n$$
+$$\frac{Az_f + B}{-z_f} = 1 \Rightarrow Az_f + B = -z_f$$
 
-$$
-A = -\frac{z_{\text{far}} + z_{\text{near}}}{z_{\text{far}} - z_{\text{near}}}, \quad
-B = -\frac{2 z_{\text{far}} z_{\text{near}}}{z_{\text{far}} - z_{\text{near}}}
-$$
+Subtracting the first equation from the second:
 
-So depth can be tested in NDC space without needing to know original $z$.
+$$A(z_f - z_n) = -z_f - z_n \Rightarrow A = -\frac{z_f + z_n}{z_f - z_n}$$
 
-#### Row 4: Perspective Divide
+Substituting back:
 
-The $-1$ in the fourth row ensures:
+$$B = z_n - Az_n = \frac{2z_f z_n}{z_n - z_f}$$
 
-$$
-w = -z
-\Rightarrow
-\left( \frac{x'}{-z}, \frac{y'}{-z}, \frac{z'}{-z} \right)
-$$
+### The Complete Perspective Matrix
 
-This is the **perspective divide** that gives the depth-correct behavior.
+Putting it all together:
 
-
-## Using FOV
-
-Let's break down **how the perspective projection matrix using field of view (FOV)** is derived.
-
-### Step 1: From FOV to View Volume
-
-Let's start with the vertical field of view $\theta$ and the near plane at $z = z_n$.
-
-From the definition of FOV:
-
-$$
-\tan\left(\frac{\theta}{2}\right) = \frac{\text{top}}{z_n}
-\Rightarrow
-\text{top} = t = z_n \cdot \tan\left(\frac{\theta}{2}\right)
-$$
-
-Aspect ratio $a = \frac{\text{width}}{\text{height}}$ gives:
-
-$$
-r = t \cdot a
-$$
-
-So the view frustum at the near plane spans:
-
-* $x \in [-r, r]$
-* $y \in [-t, t]$
-
-We now need to scale and normalize this into $[-1, 1]$ in $x$, $y$, and $z$.
-
----
-
-### Step 2: Scaling X and Y
-
-To map $[-r, r]$ to $[-1, 1]$, we scale $x$ by $\frac{1}{r}$. Same for $y$ with $\frac{1}{t}$.
-
-So the top-left 2×2 part of the matrix becomes:
-
-$$
-\begin{bmatrix}
-\frac{1}{r} & 0 \\
-0 & \frac{1}{t}
-\end{bmatrix}
-=
-\begin{bmatrix}
-\frac{1}{a \cdot \tan(\theta/2)} & 0 \\
-0 & \frac{1}{\tan(\theta/2)}
-\end{bmatrix}
-$$
-
-This ensures points at the edge of the frustum map to $-1$ or $1$ after division by $w = -z$.
-
----
-
-### Step 3: Perspective and Depth Mapping
-
-We want $w = -z$ to enable perspective divide, and $z_{\text{view}} \in [z_n, z_f]$ to map to $z_{\text{ndc}} \in [-1, 1]$.
-
-We need:
-
-$$
-z' = A z + B, \quad w = -z
-\Rightarrow z_{\text{ndc}} = \frac{z'}{w} = \frac{A z + B}{-z}
-$$
-
-Set conditions:
-
-* When $z = z_n$: $\frac{A z_n + B}{-z_n} = -1$
-* When $z = z_f$: $\frac{A z_f + B}{-z_f} = 1$
-
-Solving these:
-
-$$
-\text{(1)} \quad \frac{A z_n + B}{-z_n} = -1 \Rightarrow A z_n + B = z_n \\
-\text{(2)} \quad \frac{A z_f + B}{-z_f} = 1 \Rightarrow A z_f + B = -z_f
-$$
-
-Subtracting (1) from (2):
-
-$$
-A(z_f - z_n) = -z_f - z_n \Rightarrow A = -\frac{z_f + z_n}{z_f - z_n}
-$$
-
-Plug into (1) to find $B$:
-
-$$
-B = z_n - A z_n = z_n + z_n \cdot \frac{z_f + z_n}{z_f - z_n}
-= \frac{2 z_f z_n}{z_n - z_f}
-$$
-
-So:
-
-$$
-z' = A z + B = \frac{z_f + z_n}{z_n - z_f} z + \frac{2 z_f z_n}{z_n - z_f}
-$$
-
----
-
-### Step 4: Final Matrix
-
-$$
-P =
-\begin{bmatrix}
+$P = \begin{bmatrix}
 \frac{1}{a \tan(\theta/2)} & 0 & 0 & 0 \\
 0 & \frac{1}{\tan(\theta/2)} & 0 & 0 \\
-0 & 0 & \frac{z_f + z_n}{z_n - z_f} & \frac{2 z_f z_n}{z_n - z_f} \\
+0 & 0 & \frac{z_f + z_n}{z_n - z_f} & \frac{2z_f z_n}{z_n - z_f} \\
 0 & 0 & -1 & 0
-\end{bmatrix}
-$$
+\end{bmatrix}$
 
-Multiplied with $\begin{bmatrix} x \\ y \\ z \\ 1 \end{bmatrix}$, it outputs a 4D vector $(x', y', z', w = -z)$, which after division gives normalized screen coordinates.
+Let's understand each component:
+
+- **Row 1**: Scales $x$ based on aspect ratio and horizontal field of view
+- **Row 2**: Scales $y$ based on vertical field of view  
+- **Row 3**: Maps depth from $[z_n, z_f]$ to $[-1, 1]$ after perspective divide
+- **Row 4**: Sets $w = -z$ to enable perspective divide
+
+---
+
+## **How It All Works Together**
+
+When you multiply this matrix with a 3D point $\begin{bmatrix} x \\ y \\ z \\ 1 \end{bmatrix}$:
+
+1. You get a 4D result $\begin{bmatrix} x' \\ y' \\ z' \\ w \end{bmatrix}$ where $w = -z$
+2. The graphics pipeline performs perspective divide: $\left(\frac{x'}{w}, \frac{y'}{w}, \frac{z'}{w}\right)$
+3. This gives you normalized device coordinates where:
+   - $x$ and $y$ are in $[-1, 1]$ and represent screen position
+   - $z$ is in $[-1, 1]$ and represents depth for depth testing
+
+Points outside this normalized cube are automatically clipped by the graphics hardware.
+
+---
+
+## **Conclusion**
+
+The perspective projection matrix isn't magic - it's a systematic solution to the problem of converting 3D world coordinates into 2D screen coordinates while preserving depth information. By understanding how each component works:
+
+- The basic $x/z, y/z$ division creates the perspective effect
+- Homogeneous coordinates and matrix multiplication make it efficient
+- Field of view and aspect ratio scaling ensure proper proportions
+- Depth mapping enables hardware depth testing and clipping
+
+This foundation will help you understand more advanced graphics concepts and debug projection-related issues in your 3D applications. Modern graphics APIs provide functions to generate these matrices, but knowing the underlying math gives you the power to customize and optimize when needed.
