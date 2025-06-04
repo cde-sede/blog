@@ -3,6 +3,7 @@
 		"filename": "index.html",
 		"output": "index.html",
 		"title": "Home - cde-sede",
+		"js": "",
 		"navbar": { "type": "link", "value": "navbar" },
 		"footer": { "type": "link", "value": "footer" },
 		"content": { "type": "link", "value": "excerpts" }
@@ -12,6 +13,7 @@
 		"filename": "index.html",
 		"output": "about.html",
 		"title": "About me - cde-sede",
+		"js": "",
 		"navbar": { "type": "link", "value": "navbar" },
 		"footer": { "type": "link", "value": "footer" },
 		"content": "About me"
@@ -21,6 +23,7 @@
 		"filename": "index.html",
 		"output": "projects.html",
 		"title": "Projects - cde-sede",
+		"js": "",
 		"navbar": { "type": "link", "value": "navbar" },
 		"footer": { "type": "link", "value": "footer" },
 		"content": ""
@@ -30,6 +33,7 @@
 		"filename": "index.html",
 		"output": "contact.html",
 		"title": "Home Page",
+		"js": "",
 		"navbar": { "type": "link", "value": "navbar" },
 		"footer": { "type": "link", "value": "footer" },
 		"content": ""
@@ -270,14 +274,19 @@
 		"output": "null"
 	},
 
+	"include-scripts": {
+		"filename": "onload.js",
+		"output": "null"
+	},
+
 	"scripts": {
-		"filename": "entry.js",
 		"scripts": [
 			{ "type": "file", "value": "utils.js" },
 			{ "type": "file", "value": "themes/picker.js" },
 			{ "type": "file", "value": "article/fade-in.js" },
 			{ "type": "file", "value": "article/spoiler.js" }
 		],
+		"filename": "entry.js",
 		"output": "bundle.js"
 	},
 
@@ -354,6 +363,7 @@
 			"filename": "index.html",
 			"output": "projection.html",
 			"title": "3D projection",
+			"js": "",
 
 			"navbar": { "type": "link", "value": "navbar" },
 			"footer": { "type": "link", "value": "footer" },
@@ -374,7 +384,13 @@
 			"type": "object",
 			"filename": "index.html",
 			"output": "multilayer.html",
-			"title": "The perceptron",
+			"title": "Multilayer Neural Network",
+			"js": {
+				"type": "link", "value": "include-scripts",
+				"scripts": [
+					{ "type": "file", "value": "articles/multilayer.js" }
+				]
+			},
 
 			"navbar": { "type": "link", "value": "navbar" },
 			"footer": { "type": "link", "value": "footer" },
@@ -388,7 +404,7 @@
 						"value": "articles/multilayer.md"
 					}
 				},
-				"template": "{{md}}"
+				"filename": "articles/multilayer.html"
 			}
 		},
 		"perceptron": {
@@ -396,6 +412,7 @@
 			"filename": "index.html",
 			"output": "perceptron.html",
 			"title": "The perceptron",
+			"js": "",
 
 			"navbar": { "type": "link", "value": "navbar" },
 			"footer": { "type": "link", "value": "footer" },
@@ -417,6 +434,7 @@
 			"filename": "index.html",
 			"output": "blog.html",
 			"title": "Regex-powered blog engine",
+			"js": "",
 
 			"navbar": { "type": "link", "value": "navbar" },
 			"footer": { "type": "link", "value": "footer" },

@@ -1,2 +1,2 @@
 ./run.sh
-onchange "src/*" "src/**/*" -- ./run.sh
+onchange "src/*" "src/**/*" -- node src/build.js

@@ -1,94 +1,55 @@
-# The Perceptron
+# **Understanding the Perceptron: From Linear Classification to Neural Networks**
 
-The Perceptron is an algorithm of supervised learning. Originally presented in the book Perceptrons: An Introduction to Computational Geometry by Marvin Minksy and Seymour Papert. It is a type of artificial neural network, whose goal is binary classification - Deciding in which category the output falls.
-In essence, a Perceptron is exactly the same a linear regression with gradient descent.
+The perceptron is one of the foundational algorithms in machine learning - a simple yet powerful tool for binary classification that bridges the gap between traditional statistical methods and modern neural networks. Originally formalized by Frank Rosenblatt in 1957 and later analyzed in detail by Marvin Minsky and Seymour Papert, the perceptron demonstrates how we can teach machines to make decisions through experience.
 
+At its core, a perceptron solves a fundamental problem: **given some data points, can we find a line that separates them into two categories?** This seemingly simple question leads us through some of the most important concepts in machine learning.
 
-## The Problem
+---
 
-Let's say we have to decide whether an arbitrary point **p** falls under or above a line. Assuming we know the equation of the line this is quite simple.
-We simply use the line equation
+## **The Classification Problem**
 
-$$ap_x + b > p_y$$
+Imagine you have a collection of points on a 2D plane, and each point belongs to one of two categories - let's say "above the line" (+1) or "below the line" (-1). Your goal is to find the equation of a line that separates these categories.
 
-Where **a** and **b** are the slope and y-intercept.  
-Now let's try without this information, instead we have a collection of points and whether or not they are above a line. We have two solutions here: Linear Regression or a Neural Network
+If you knew the line equation $y = ax + b$, classification would be trivial:
+- If $ax + b > y$, the point is below the line
+- If $ax + b < y$, the point is above the line
 
-### Linear Regression
+But what if you don't know the line? What if you only have the points and their labels? This is where learning algorithms come in.
 
-Linear Regression is quite simple in concept.  
-It works by minimizing the sum of **squared differences** between the predicted values and the actual values.  
-In other words, the goal is to find the values **a** and **b** that minimizes the **error** between our guess and the real line.  
+---
 
-We have a set of data points (x₁, y₁), (x₂, y₂), ..., (xₙ, yₙ). 
+## **Approach 1: Linear Regression**
 
-For each point, the error is the difference between the actual y value and our prediction:
-- Error for a point = actual y - predicted y
-- Error for a point = yᵢ - (m×xᵢ + b)
+### The Direct Mathematical Solution
 
-#### Defining What "Best Fit" Means
+One approach is to use **linear regression** to find the best-fitting line through your data points. Linear regression works by finding the line that minimizes the sum of squared differences between predicted and actual values.
 
-We define the "best" line as the one that minimizes the sum of squared errors:
+For a dataset of points $(x_1, y_1), (x_2, y_2), ..., (x_n, y_n)$, we want to minimize:
 
-$$\frac{1}{n}\sum{(y_i - (ax_i+b))^2}$$
+$$\text{Error} = \frac{1}{n}\sum_{i=1}^{n}(y_i - (ax_i + b))^2$$
 
-We square the errors because:
-- It penalizes larger errors more heavily
-- It treats positive and negative errors equally
-- It makes the math more tractable by creating a smooth function to minimize
+We square the errors because it:
+- Penalizes larger errors more heavily
+- Treats positive and negative errors equally  
+- Creates a smooth, differentiable function to minimize
 
-#### Finding the Minimum Error
+### Finding the Optimal Solution
 
-To find the minimum of the error function, we use calculus. We take the partial derivatives of the error function with respect to m and b, and set them to zero:
+Using calculus, we take partial derivatives and set them to zero:
 
-$$\begin{align*} \partial(Error)/\partial{a} = 0 \\ \partial(Error)/\partial{b} = 0\end{align*}$$
+$$\frac{\partial(\text{Error})}{\partial a} = 0, \quad \frac{\partial(\text{Error})}{\partial b} = 0$$
 
-This gives us two equations (called "normal equations"):
+This gives us the **normal equations**, which can be solved directly:
 
-$$\begin{align*} \partial(Error)/\partial{a} = -2\sum{x_i (y_i - (ax_i + b))} = 0 \\ \partial(Error)/\partial{b} = -2\sum{y_i - (ax_i + b)} = 0\end{align*}$$
+$$a = \frac{n \sum (x_i y_i) - \sum x_i \sum y_i}{n \sum x_i^2 - (\sum x_i)^2}$$
 
-#### Solving the System of Equations
+$$b = \bar{y} - a\bar{x}$$
 
-Simplifying these equations:
+where $\bar{x}$ and $\bar{y}$ are the means of x and y values.
 
-For the intercept b:
-$$\begin{align*} \sum{(y_i - ax_i - b)} = 0 \\ \sum{y_i - a\sum{x_i - nb}} = 0 \\ b = \frac{\sum{y_i - a\sum{x_i}}}{n} \\ b = \bar{y} - a\bar{x} \end{align*}$$
-
-(where $\bar{y}$ and $\bar{x}$ are the means and n the number of points)
-
-For the slope m:
-$$\begin{align*} \sum(x_i(y_i - ax_i - b)) = 0 \\ \sum(x_{i}y_{i}) - a\sum{x_{i}^2} - b\sum{x+i} = 0 \end{align*}$$
-
-Substituting the expression for b:
-$$\begin{equation} \begin{aligned} \sum (x_i y_i) - a \sum (x_i^2) - (\bar{y} - a \bar{x}) \sum x_i &= 0 \\ \sum (x_i y_i) - a \sum (x_i^2) - \bar{y} \sum x_i + a \bar{x} \sum x_i &= 0 \\ \sum (x_i y_i) - \bar{y} \sum x_i &= a \sum (x_i^2) - a \bar{x} \sum x_i \\ \sum (x_i y_i) - \bar{y} \sum x_i &= a \left( \sum (x_i^2) - \bar{x} \sum x_i \right) \end{aligned} \end{equation}$$
-
-This can be simplified to:
-$$a = \frac{\sum (x_i - \bar{x})(y_i - \bar{y})}{\sum (x_i - \bar{x})^2}$$
-
-#### The Final Solution
-
-With some algebraic manipulation, we get these cleaner formulas:
-$$\begin{align*} a = \frac{n \sum (x_i y_i) - \sum x_i \sum y_i}{n \sum x_i^2 - (\sum x_i)^2} \\ b = \bar{y} - a \bar{x} = \frac{\sum y_i - a \sum x_i}{n} \end{align*}$$
-
-#### Why This Works
-
-This approach works because:
-
-1. **Mathematical Guarantee**: The calculus-based approach guarantees we find the **global minimum** of the squared error function.
-
-2. **Unique Solution**: For linear regression, there is exactly one line that minimizes the sum of squared errors.
-
-3. **Optimal Predictions**: The resulting line gives us predictions that are as close as possible to the actual data (in terms of squared error).
-
-4. **Statistical Properties**: Under certain assumptions, these estimates have desirable statistical properties (like being unbiased).
-
-Linear regression finds the mathematically optimal solution without needing to guess or iterate, unlike gradient descent which approaches the solution gradually. When the dataset is small to medium-sized, this direct solution is efficient and precise.
-
-Here is an implementation of the linear regression:  
-
+### Implementation
 
 ```python
-# filename: LinearRegression.py
 class LinearRegression:
     def __init__(self):
         self.slope = 0
@@ -99,197 +60,208 @@ class LinearRegression:
         mean_x = sum(x_values) / n
         mean_y = sum(y_values) / n
         
-        sum_xy = 0
-        sum_xx = 0
-        for i in range(n):
-            sum_xy += x_values[i] * y_values[i]
-            sum_xx += x_values[i] * x_values[i]
+        sum_xy = sum(x * y for x, y in zip(x_values, y_values))
+        sum_xx = sum(x * x for x in x_values)
         
         numerator = n * sum_xy - sum(x_values) * sum(y_values)
         denominator = n * sum_xx - sum(x_values) ** 2
         
         if denominator == 0:
-            raise ValueError("Cannot fit a line with zero slope denominator")
+            raise ValueError("Cannot fit line: vertical relationship")
             
         self.slope = numerator / denominator
         self.intercept = mean_y - self.slope * mean_x
         
-        return self
-    
     def predict(self, x_values):
-        predictions = []
-        for x in x_values:
-            y_pred = self.slope * x + self.intercept
-            predictions.append(y_pred)
-            
-        return predictions
+        return [self.slope * x + self.intercept for x in x_values]
 ```
 
-#### Gradient descent
+### Limitations of Linear Regression
 
-Here we are analytically calculating the minimum of the function. But it is also possible to approximate it by trial and error.  
-Gradient descent is the idea of minimizing the error by going towards the local minimum using the derivative of the function. 
+While linear regression gives us a mathematically optimal solution, it has several limitations for classification:
 
-I won't go over it in too much detail, as an exercise you could try to implement it yourself.  
-Here is a working version: (click on the code block to reveal the code)
+1. **Outlier sensitivity**: Squared errors give outliers disproportionate influence
+2. **Continuous output**: We get real numbers, not discrete categories
+3. **Linear assumption**: Only works for linearly separable data
+4. **Memory intensive**: Direct solution requires storing and manipulating large matrices
 
-```python
-# filename: LinearRegressionGradientDescent.py
-# spoiler: true
-class LinearRegressionGradientDescent:
-    def __init__(self, learning_rate=0.01, iterations=1000):
-        self.learning_rate = learning_rate
-        self.iterations = iterations
-        self.weights = None
-        self.bias = None
-    
-    def _mean_squared_error(self, X, y, weights, bias):
-        return np.mean((pnp.dot(X, weights) + bias - y) ** 2)
-    
-    def fit(self, X, y):
-        n_samples, n_features = X.shape
-        
-        self.weights = np.zeros(n_features)
-        self.bias = 0
-        
-        for _ in range(self.iterations):
-            predictions = np.dot(X, self.weights) + self.bias
-            
-            dw = (1 / n_samples) * np.dot(X.T, (predictions - y))
-            db = (1 / n_samples) * np.sum(predictions - y)
-            
-            self.weights -= self.learning_rate * dw
-            self.bias -= self.learning_rate * db
-    
-    def predict(self, X):
-        return np.dot(X, self.weights) + self.bias
-```
+---
 
-### Neural Networks
+## **Approach 2: Gradient Descent**
 
-While this approach works and allows us to get a continuous answer, there are still a few issues:
-- The result can only be linear
-- Heteroscedasticity
-- Outliers have higher leverage due to the square
+Instead of solving the equations directly, we can **iteratively improve** our guess using gradient descent. This approach:
 
-To some degree, some of these issues can be mitigated by changing the approach, adding dimensions, doing some statistical analysis on the dataset etc.
-But these solutions have to be fine tuned to the dataset and the problem.
+- Starts with random values for $a$ and $b$
+- Calculates how wrong our current guess is
+- Adjusts $a$ and $b$ in the direction that reduces the error
+- Repeats until convergence
 
-Furthermore on large datasets Regression can be very memory intensive.  
-The solution is to compute the **local minimum** of the function and include some non linear functions into the computation.
+### The Algorithm
 
-At the core of training a neural network is a simple 3 steps idea
+1. **Initialize**: Start with random weights
+2. **Predict**: Calculate $\hat{y} = ax + b$ for all points
+3. **Compute gradients**: 
+   - $\frac{\partial(\text{Error})}{\partial a} = \frac{2}{n}\sum((\hat{y}_i - y_i) \cdot x_i)$
+   - $\frac{\partial(\text{Error})}{\partial b} = \frac{2}{n}\sum(\hat{y}_i - y_i)$
+4. **Update weights**:
+   - $a \leftarrow a - \eta \cdot \frac{\partial(\text{Error})}{\partial a}$
+   - $b \leftarrow b - \eta \cdot \frac{\partial(\text{Error})}{\partial b}$
 
-- Make a prediction
-- Calculate by how much the prediction is off, and in which direction to go to reduce the error
-- Change how the prediction
+Where $\eta$ is the **learning rate** - how big steps we take toward the minimum.
 
-Repeat until satisfaction.  
-Let's see how each step goes in the case of a Perceptron
+### Benefits of Gradient Descent
 
-#### 1. The prediction
+- **Memory efficient**: Processes one example (or small batches) at a time
+- **Scalable**: Works with massive datasets that don't fit in memory
+- **Flexible**: Can be adapted to different loss functions and model types
+- **Foundation for neural networks**: The same principle scales to complex models
 
-A perceptron is composed of 3 parts
-- **Inputs**: The values we use to make the prediction
-- **Weights**: How much each input changes the prediction
-- **Activation** Function: A function to introduce some non linearity (for example the **sigmoid** $f(x) = \frac{1}{1+e^x}$)
+---
 
-To make the prediction, we compute the weighted sum of inputs, then feed this value into the activation function
+## **Approach 3: The Perceptron**
 
-$$pred = f(\sum{x_i w_i})$$
+The perceptron takes a different approach. Instead of trying to fit a continuous line, it directly learns to classify points into discrete categories.
 
-#### 2. The error
+### How a Perceptron Works
 
-Once we have a prediction, we compare it to the expected output using a **loss function**.
-A common choice is **mean squared error (MSE)**:
+A perceptron consists of:
 
-$$L = \frac{1}{n} \sum_{i=1}^{n} (y_i - \hat{y}_i)^2$$
+1. **Inputs**: The values we use for prediction (e.g., x, y coordinates)
+2. **Weights**: How much each input influences the decision
+3. **Activation function**: Converts continuous output to discrete classification
 
-Or simply the distance between the prediction and the expected output $L = y - \hat{y}$
+The prediction process:
+1. Compute weighted sum: $z = \sum_{i} w_i x_i + b$
+2. Apply activation function: $\hat{y} = \text{sign}(z)$
 
-This gives us a measure of how far off our predictions are. The goal is to minimize this loss.
+Where $\text{sign}(z) = +1$ if $z > 0$, else $-1$.
 
-#### 3. The correction
+### The Perceptron Learning Rule
 
-To reduce the error, we adjust the weights.
-We compute the **gradient** of the loss function with respect to each weight — how much a small change in a weight would change the loss.
-This is done via **backpropagation**, and we use **gradient descent** to update the weights:
+The perceptron uses a beautifully simple learning rule:
 
-$$ w \leftarrow w - \eta \cdot \frac{\partial L}{\partial w} $$
+1. **Make a prediction**: $\hat{y} = \text{sign}(\sum w_i x_i + b)$
+2. **Calculate error**: $\text{error} = y_{\text{true}} - \hat{y}$
+3. **Update weights**: $w_i \leftarrow w_i + \eta \cdot \text{error} \cdot x_i$
 
-Where $\eta$ is the learning rate — how big each step is.
+This rule has an elegant interpretation:
+- If prediction is correct ($\text{error} = 0$), weights don't change
+- If prediction is wrong, weights move toward the correct answer
+- The magnitude of change depends on the input value and learning rate
 
-Repeat this loop (predict → compute error → update weights) until the model converges or reaches a stopping criterion.
+### Implementation
 
 ```python
-# spoiler: true
-# filename: perceptron.py
-from itertools import starmap
-from operator import mul
 import random
 
-SIGN = lambda f: (f > 0) - (f < 0)
-XMIN, XMAX = -1, 1
-YMIN, YMAX = -1, 1
-WIDTH = 400
-HEIGHT = 400
-NUM_POINTS = 2000
-LEARNING_RATE = 0.001
-POINTS = [(
-	random.random() * 2 - 1,
-	random.random() * 2 - 1,
-	) for _ in range(NUM_POINTS)
-]
-
-LINE = lambda x: 0.3 * x + 0.4
-
-DATASET = [
-	[(*p, 1), SIGN(LINE(p[0]) - p[1])] for p in POINTS
-]
-
 class Perceptron:
-	def __init__(self, num_inputs):
-		self.weights = [random.random() for _ in range(num_inputs)]
-		self.activation = SIGN
-
-	def guess(self, values):
-		return self.activation(sum(starmap(mul, zip(self.weights, values))))
-
-	def train(self, inputs, target):
-		guess = self.guess(inputs)
-
-		error = target - guess
-		self.weights = [w + error * i * LEARNING_RATE for w, i in zip(self.weights, inputs)]
-
-
-perceptron = Perceptron(3)
-for epoch in range(10):
-    for x, y in DATASET:
-        perceptron.train(x, y)
-
-print(f"1st Point: {DATASET[0][0]} correct: {DATASET[0][1]} guess: {perceptron.guess(DATASET[0][0])}")
-print(f"2nd Point: {DATASET[1][0]} correct: {DATASET[1][1]} guess: {perceptron.guess(DATASET[1][0])}")
-print(f"3rd Point: {DATASET[2][0]} correct: {DATASET[2][1]} guess: {perceptron.guess(DATASET[2][0])}")
+    def __init__(self, num_inputs, learning_rate=0.01):
+        self.weights = [random.random() for _ in range(num_inputs)]
+        self.learning_rate = learning_rate
+    
+    def predict(self, inputs):
+        weighted_sum = sum(w * x for w, x in zip(self.weights, inputs))
+        return 1 if weighted_sum > 0 else -1
+    
+    def train(self, inputs, target):
+        prediction = self.predict(inputs)
+        error = target - prediction
+        
+        # Update weights
+        for i in range(len(self.weights)):
+            self.weights[i] += self.learning_rate * error * inputs[i]
+    
+    def fit(self, training_data, epochs=10):
+        for epoch in range(epochs):
+            for inputs, target in training_data:
+                self.train(inputs, target)
 ```
 
-
-And using numpy
+### Example: Learning to Classify Points
 
 ```python
-# filename: perceptron_np.py
-import numpy as np
+# Generate training data: points above/below y = 0.3x + 0.4
+import random
 
-class Perceptron:
-	def __init__(self, num_inputs):
-		self.weights = np.asarray([random.random() for _ in range(num_inputs)], dtype=np.float64)
-		self.activation = np.sign
+def generate_data(num_points=1000):
+    data = []
+    for _ in range(num_points):
+        x = random.uniform(-1, 1)
+        y = random.uniform(-1, 1)
+        
+        # True line: y = 0.3x + 0.4
+        label = 1 if y > (0.3 * x + 0.4) else -1
+        
+        # Include bias term
+        inputs = [x, y, 1]  
+        data.append((inputs, label))
+    
+    return data
 
-	def guess(self, values):
-		return self.activation(np.sum(self.weights * np.asarary(values)))
+# Train the perceptron
+training_data = generate_data(1000)
+perceptron = Perceptron(num_inputs=3, learning_rate=0.01)
+perceptron.fit(training_data, epochs=10)
 
-	def train(self, inputs, target):
-		guess = self.guess(inputs)
-
-		error = target - guess
-		self.weights += error * inputs * LEARNING_RATE
+# Test on new data
+test_data = generate_data(10)
+for inputs, true_label in test_data[:3]:
+    prediction = perceptron.predict(inputs)
+    print(f"Point: ({inputs[0]:.2f}, {inputs[1]:.2f})")
+    print(f"True: {true_label}, Predicted: {prediction}")
+    print(f"Correct: {prediction == true_label}\n")
 ```
+
+---
+
+## **Comparing the Approaches**
+
+| Aspect | Linear Regression | Gradient Descent | Perceptron |
+|--------|------------------|------------------|------------|
+| **Solution type** | Analytical (exact) | Iterative approximation | Iterative learning |
+| **Output** | Continuous values | Continuous values | Discrete classifications |
+| **Memory usage** | High (matrices) | Low (streaming) | Low (streaming) |
+| **Convergence** | Immediate | Guaranteed* | Guaranteed** |
+| **Robustness** | Sensitive to outliers | Moderate | More robust |
+| **Scalability** | Limited | Excellent | Excellent |
+
+*For convex problems  
+**For linearly separable data
+
+---
+
+## **Why the Perceptron Matters**
+
+The perceptron might seem simple compared to modern deep learning, but it established several crucial concepts:
+
+1. **Learning from data**: Algorithms can improve through experience
+2. **Iterative optimization**: Complex problems can be solved step by step
+3. **Weight updates**: The foundation of how neural networks learn
+4. **Biological inspiration**: Mimicking how neurons might work
+
+### Limitations and Extensions
+
+The perceptron has important limitations:
+- Only works for **linearly separable** data
+- Cannot solve problems like XOR
+- Limited to binary classification
+
+However, these limitations led to crucial developments:
+- **Multi-layer perceptrons** (neural networks) can learn non-linear patterns
+- **Different activation functions** enable various behaviors
+- **Multiple output neurons** allow multi-class classification
+
+---
+
+## **Conclusion**
+
+The journey from linear regression to the perceptron illustrates a fundamental shift in machine learning thinking:
+
+- **From analytical to iterative**: Instead of solving equations directly, we learn through gradual improvement
+- **From continuous to discrete**: Moving from predicting exact values to making categorical decisions  
+- **From batch to online**: Processing examples one at a time enables real-time learning
+- **From mathematical to algorithmic**: Solutions that can adapt and scale
+
+The perceptron's simple learning rule - adjust weights based on errors - became the foundation for all modern neural networks. While deep learning models today are vastly more complex, they still use the same core principle: learn by example, make predictions, measure errors, and adjust accordingly.
+
+Understanding the perceptron gives you insight into how machine learning really works under the hood, and why neural networks became such a powerful tool for solving complex problems.
