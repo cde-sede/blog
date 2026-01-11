@@ -239,6 +239,110 @@ The `RUN` macro copies the argument struct onto the coroutine's stack. The corou
 
 Yes, this is macro-heavy. The alternative is either heap-allocating argument blocks manually or forcing users into unsafe lifetime rules. The macros hide the ceremony while keeping the underlying mechanism simple.
 
+## Signals: Here Be Dragons
+
+Signals and coroutines have a complicated relationship. Understanding it is essential if your coroutines will interact with child processes, timers, or any signal-generating code.
+
+### The Problem
+
+When a signal arrives, the kernel interrupts whatever is currently running and invokes the handler on the *current stack*. With coroutines, that means:
+
+```
+    Signal arrives while coroutine is running:
+
+    MAIN STACK                          COROUTINE STACK
+    ┌─────────────────┐                 ┌─────────────────┐
+    │                 │                 │  signal_handler │ <- runs HERE
+    │   (suspended)   │                 ├─────────────────┤
+    │                 │                 │  user_func()    │
+    │                 │                 │   (interrupted) │
+    └─────────────────┘                 └─────────────────┘
+```
+
+This creates several issues:
+
+1. **Stack overflow risk** - The handler runs on the coroutine's limited stack (64KB by default). A complex handler could overflow it.
+
+2. **Shared signal masks** - Signal masks are per-thread, not per-coroutine. If one coroutine blocks `SIGUSR1`, all coroutines have it blocked.
+
+3. **EINTR interruptions** - Signals interrupt `epoll_wait`/`kevent` with `EINTR`. The event loop must handle this.
+
+4. **No longjmp from handlers** - Attempting to yield or longjmp from a signal handler is undefined behavior and will likely crash.
+
+### Solutions
+
+**For stack protection**, use `sigaltstack` to run handlers on a dedicated stack:
+
+```c
+char *alt_stack = malloc(64 * 1024);
+stack_t ss = { .ss_sp = alt_stack, .ss_size = 64*1024 };
+sigaltstack(&ss, NULL);
+
+struct sigaction sa = {
+    .sa_handler = handler,
+    .sa_flags = SA_ONSTACK  // Key flag
+};
+```
+
+**For event loop integration**, avoid handlers entirely. On Linux, `signalfd` converts signals into file descriptor events:
+
+```c
+sigset_t mask;
+sigaddset(&mask, SIGUSR1);
+sigprocmask(SIG_BLOCK, &mask, NULL);  // Block traditional delivery
+
+int sigfd = signalfd(-1, &mask, SFD_NONBLOCK);
+
+// In coroutine - signals become regular I/O:
+WAIT_FD(sigfd);
+read(sigfd, &info, sizeof(info));
+```
+
+This integrates perfectly with epoll - no handler, no stack concerns, the coroutine decides when to handle the signal.
+
+**For portable code**, use the self-pipe trick:
+
+```c
+static int signal_pipe[2];
+
+void handler(int sig) {
+    char c = sig;
+    write(signal_pipe[1], &c, 1);  // async-signal-safe
+}
+
+// In coroutine:
+WAIT_FD(signal_pipe[0]);
+read(signal_pipe[0], &signo, 1);
+```
+
+The handler is minimal (just a write), and all real logic lives in the coroutine.
+
+### The EINTR Fix
+
+Signals can interrupt blocking syscalls. The event loop must retry:
+
+```c
+static void loop_poll_io(t_loop *loop) {
+    int n;
+    do {
+        n = epoll_wait(loop->epoll_fd, events, 64, -1);
+    } while (n < 0 && errno == EINTR);
+    // ...
+}
+```
+
+Without this, a stray `SIGCHLD` from a child process can cause the event loop to exit prematurely.
+
+### Summary
+
+| Approach | Stack Safe | Coroutine Control | Portable |
+|----------|------------|-------------------|----------|
+| sigaltstack | Yes | No | Yes |
+| signalfd | N/A | Yes | Linux |
+| Self-pipe | Handler only | Yes | Yes |
+
+For a build system spawning child processes, `signalfd` (or `pidfd` for process-specific events) is ideal. For portable code, the self-pipe trick works everywhere.
+
 ## Was It Worth It?
 
 The final implementation is around 500 lines of C. It runs on Linux, macOS, and Windows. It supports x86_64 and ARM64. The total architecture-specific assembly is about 10 lines.
