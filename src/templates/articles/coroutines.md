@@ -90,6 +90,71 @@ When we start a coroutine:
 4. When the user calls `yield`, we `setjmp` to save the coroutine's state, then `longjmp` back to the caller
 5. When the caller resumes, we `longjmp` back into the coroutine
 
+Here's what memory looks like with two stacks:
+
+```
+    MAIN STACK                          COROUTINE STACK
+    (process default)                   (mmap'd region)
+
+    ┌─────────────────┐                 ┌─────────────────┐
+    │                 │                 │   [guard page]  │ <- PROT_NONE
+    │    main()       │                 ├─────────────────┤
+    │    locals       │                 │                 │
+    ├─────────────────┤                 │                 │
+    │   loop_run()    │                 │   (free space)  │
+    │    locals       │                 │                 │
+    ├─────────────────┤                 │                 │
+    │  coro_resume()  │                 ├─────────────────┤
+    │  caller_ctx ◄───────────────────────── longjmp ─────┤
+    ├─────────────────┤                 ├─────────────────┤
+    │                 │                 │  user_func()    │
+    │                 │                 │   locals        │
+    │                 │                 ├─────────────────┤
+    │                 │                 │  coro_yield()   │
+    │                 │                 │   coro_ctx ─────────► setjmp
+    │                 │                 ├─────────────────┤
+    │                 │                 │     args        │ <- copied here
+    └─────────────────┘                 └─────────────────┘
+          ▲                                   ▲
+          │                                   │
+       SP (when in main)                   SP (when in coroutine)
+```
+
+The flow of a yield and resume:
+
+```
+    resume(co)                              user_func()
+        │                                       │
+        ▼                                       ▼
+    setjmp(caller_ctx) ◄─────────────┐     do work...
+        │                            │          │
+        │ (first time: returns 0)    │          ▼
+        ▼                            │     YIELD
+    switch_stack ──────────┐         │          │
+                           │         │          ▼
+                           ▼         │     setjmp(coro_ctx)
+                      trampoline     │          │
+                           │         │          │ (returns 0)
+                           ▼         │          ▼
+                      user_func()    │     longjmp(caller_ctx, 1)
+                           │         │          │
+                           ▼         └──────────┘
+                        YIELD              (resume returns)
+                                                │
+                                                ▼
+    - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+    resume(co) again                        user_func()
+        │                                  (continues)
+        ▼                                       ▲
+    setjmp(caller_ctx)                          │
+        │                                       │
+        │ (returns 0)                           │
+        ▼                                       │
+    longjmp(coro_ctx, 1) ───────────────────────┘
+                                          (setjmp returns 1)
+```
+
 ```c
 static void coro_trampoline(void) {
     coro_t *co = get_current();
