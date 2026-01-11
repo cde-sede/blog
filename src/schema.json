@@ -295,6 +295,17 @@
 			{
 				"type": "object",
 				"filename": "article/excerpt.html",
+				"title": "Handmade coroutines in C",
+				"name": "coroutines.html",
+				"text": {
+					"type": "link", "value": "markdown",
+					"contents": "Building coroutines in C from scratch with minimal assembly."
+				},
+				"output": "null"
+			},
+			{
+				"type": "object",
+				"filename": "article/excerpt.html",
 				"title": "Basic 3D projection",
 				"name": "projection.html",
 				"text": {
@@ -358,6 +369,28 @@
 		"output": "null"
 	},
 	"articles": {
+		"coroutines": {
+			"type": "object",
+			"filename": "index.html",
+			"output": "coroutines.html",
+			"title": "Handmade coroutines",
+			"js": "",
+
+			"navbar": { "type": "link", "value": "navbar" },
+			"footer": { "type": "link", "value": "footer" },
+			"content": {
+				"type": "isolatedobject",
+				"md": {
+					"type": "link",
+					"value": "markdown",
+					"contents": {
+						"type": "file",
+						"value": "articles/coroutines.md"
+					}
+				},
+				"template": "{{md}}"
+			}
+		},
 		"projection": {
 			"type": "object",
 			"filename": "index.html",
